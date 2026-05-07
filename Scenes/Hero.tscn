@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://b77kvu6av51nd"]
+
+[ext_resource type="Script" uid="uid://r07rhsb3ij8o" path="res://Scripts/Entities/Hero.gd" id="1_nm5wh"]
+[ext_resource type="Texture2D" uid="uid://c2hnnn5n1mf4i" path="res://icon.svg" id="2_ce415"]
+
+[node name="Hero" type="Node2D" unique_id=601150588]
+script = ExtResource("1_nm5wh")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=390117118]
+self_modulate = Color(0.6331337, 0.561118, 0, 1)
+texture = ExtResource("2_ce415")
+
+[node name="RayCast2D" type="RayCast2D" parent="." unique_id=1782547104]
+target_position = Vector2(0, -200)

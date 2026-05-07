@@ -3,7 +3,8 @@
     "allow": [
       "Bash(mkdir -p \"f:/GAME-demo/game-demo-w/Scripts/Global\" \"f:/GAME-demo/game-demo-w/Scripts/Logic\")",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(mkdir \"f:/GAME-demo/game-demo-w/Scripts/Test\")"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts"

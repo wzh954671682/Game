@@ -14,10 +14,6 @@ config/name="GameDemo-w"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[physics]
-
-3d/physics_engine="Jolt Physics"
-
 [autoload]
 
 GameEvents="*res://Scripts/Global/GameEvents.gd"
@@ -27,6 +23,17 @@ BattleManager="*res://Scripts/Managers/BattleManager.gd"
 DeckManager="*res://Scripts/Managers/DeckManager.gd"
 VFXManager="*res://Scripts/Global/VFXManager.gd"
 SaveManager="*res://Scripts/Global/SaveManager.gd"
+
+[display]
+
+window/size/viewport_width=1080
+window/size/viewport_height=2160
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 
