@@ -25,6 +25,7 @@ GridManager="*res://Scripts/Logic/GridManager.gd"
 DataManager="*res://Scripts/Global/DataManager.gd"
 BattleManager="*res://Scripts/Managers/BattleManager.gd"
 DeckManager="*res://Scripts/Managers/DeckManager.gd"
+VFXManager="*res://Scripts/Global/VFXManager.gd"
 
 [rendering]
 
