@@ -1,0 +1,7 @@
+{
+  "base_hp": 1000,
+  "growth_coefficient": 0.15,
+  "upgrade_base_cost": 500,
+  "cost_exponent": 1.2,
+  "max_level": 50
+}

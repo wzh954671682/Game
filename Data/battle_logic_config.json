@@ -1,0 +1,21 @@
+{
+  "rescue_system": {
+    "trigger_delay_sec": 1.0,
+    "initial_silent_period_sec": 5.0,
+    "cooldown_sec": 10.0,
+    "package_content": [
+      {"hero_id": "shielder_01", "count": 2},
+      {"hero_id": "gunner_01", "count": 3}
+    ]
+  },
+  "star_challenge_rewards": {
+    "1_star_bonus": 1.0,
+    "3_star_bonus": 1.5,
+    "3_star_condition": "wall_hp_percent == 1.0"
+  },
+  "vfx_params": {
+    "hit_stop_duration": 0.05,
+    "screen_shake_intensity": 5.0,
+    "screen_shake_duration": 0.2
+  }
+}

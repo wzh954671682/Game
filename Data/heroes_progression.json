@@ -1,0 +1,39 @@
+{
+  "battle_star_multipliers": {
+    "1_star": 1.0,
+    "2_star": 1.5,
+    "3_star": 2.2,
+    "4_star": 3.0,
+    "5_star": 4.5
+  },
+  "hero_base_templates": [
+    {
+      "hero_id": "shielder_01",
+      "name": "盾兵",
+      "base_atk": 40,
+      "base_hp": 1200,
+      "base_def": 50,
+      "block_count": 3,
+      "shard_base_value": 10,
+      "shard_step_multiplier": 5
+    },
+    {
+      "hero_id": "gunner_01",
+      "name": "机枪手",
+      "base_atk": 100,
+      "base_hp": 500,
+      "base_def": 10,
+      "block_count": 1,
+      "shard_base_value": 10,
+      "shard_step_multiplier": 5
+    }
+  ],
+  "progression_milestones": [
+    {"level": 5, "type": "talent_node", "desc": "基础防御提升10%"},
+    {"level": 10, "type": "talent_node", "desc": "基础攻击速度提升15%"},
+    {"level": 15, "type": "talent_node", "desc": "暴击率提升5%"},
+    {"level": 20, "type": "talent_node", "desc": "拦截上限+1"},
+    {"level": 25, "type": "talent_node", "desc": "攻击附带微量减速"},
+    {"level": 30, "type": "talent_node", "desc": "解锁分支质变终极技能"}
+  ]
+}
