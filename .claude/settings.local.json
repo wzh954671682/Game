@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"f:/GAME-demo/game-demo-w/Scripts/Global\" \"f:/GAME-demo/game-demo-w/Scripts/Logic\")"
+    ],
+    "additionalDirectories": [
+      "f:\\GAME-demo\\game-demo-w\\Scripts"
+    ]
+  }
+}
