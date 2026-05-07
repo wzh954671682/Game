@@ -2,6 +2,7 @@ extends Node2D
 
 ## Hero entity placed on the 5x5 grid. Uses a RayCast2D aimed upward to
 ## detect and intercept enemies in the same column at 10 Hz.
+## Call init_hero(data) after instantiation to configure from a template.
 
 @export var max_block_count: int = 1
 var current_blocked_enemies: Array[Node2D] = []
@@ -20,9 +21,15 @@ func _physics_process(delta: float) -> void:
 	try_intercept()
 
 
+func init_hero(data: Dictionary) -> void:
+	max_block_count = data.get("block_count", 1)
+
+
 func try_intercept() -> void:
 	if current_blocked_enemies.size() >= max_block_count:
 		return
+
+	block_raycast.force_raycast_update()
 
 	if not block_raycast.is_colliding():
 		return
@@ -31,8 +38,13 @@ func try_intercept() -> void:
 	if collider == null or not collider is Node2D:
 		return
 
-	if current_blocked_enemies.has(collider as Node2D):
+	var enemy: Node2D = collider as Node2D
+	if current_blocked_enemies.has(enemy):
 		return
 
-	current_blocked_enemies.append(collider as Node2D)
-	print("英雄成功拦截怪物: ", (collider as Node2D).name)
+	current_blocked_enemies.append(enemy)
+
+	if enemy.has_method("set_paused"):
+		enemy.set_paused(true)
+
+	print("[Intercepted] 英雄拦截怪物: %s (当前拦截数: %d/%d)" % [enemy.name, current_blocked_enemies.size(), max_block_count])

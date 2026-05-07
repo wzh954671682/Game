@@ -12,3 +12,4 @@ texture = ExtResource("2_ce415")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=1782547104]
 target_position = Vector2(0, -200)
+collide_with_areas = true
