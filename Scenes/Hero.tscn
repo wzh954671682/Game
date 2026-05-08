@@ -11,5 +11,5 @@ self_modulate = Color(0.6331337, 0.561118, 0, 1)
 texture = ExtResource("2_ce415")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=1782547104]
-target_position = Vector2(0, -200)
+target_position = Vector2(0, -120)
 collide_with_areas = true

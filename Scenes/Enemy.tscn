@@ -10,7 +10,6 @@ size = Vector2(125, 128)
 script = ExtResource("1_wovta")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2079557487]
-self_modulate = Color(0.8675211, 2.4065375e-07, 0.4671964, 1)
 texture = ExtResource("2_xeo28")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1059652152]

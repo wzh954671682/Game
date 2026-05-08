@@ -156,6 +156,9 @@ func try_intercept() -> void:
 	if enemy.has_method("set_paused"):
 		enemy.set_paused(true)
 
+		if enemy.has_signal("attack_hit") and not enemy.attack_hit.is_connected(_on_enemy_attack_hit):
+			enemy.attack_hit.connect(_on_enemy_attack_hit)
+
 	print("[Intercepted] 英雄拦截怪物: %s (当前拦截数: %d/%d)" % [enemy.name, current_blocked_enemies.size(), max_block_count])
 
 
@@ -186,3 +189,18 @@ func _cleanup_dead_enemies() -> void:
 		if not is_instance_valid(current_blocked_enemies[i]):
 			current_blocked_enemies.remove_at(i)
 		i -= 1
+
+
+func _on_enemy_attack_hit(damage: int) -> void:
+	current_hp -= damage
+	if current_hp <= 0:
+		current_hp = 0
+		_die()
+
+
+func _die() -> void:
+	if sprite_2d:
+		var tween := create_tween()
+		tween.tween_property(self, "modulate:a", 0.0, 0.5)
+		await tween.finished
+	queue_free()

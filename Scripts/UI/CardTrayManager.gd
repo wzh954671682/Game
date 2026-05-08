@@ -28,7 +28,7 @@ func setup(card_scene: PackedScene, hero_templates: Dictionary) -> void:
 func _create_tray() -> void:
 	_tray = HBoxContainer.new()
 	_tray.name = "CardTray"
-	_tray.alignment = BoxContainer.ALIGNMENT_CENTER
+	_tray.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_tray.add_theme_constant_override("separation", 8)
 
 	_tray_wrapper = CenterContainer.new()
