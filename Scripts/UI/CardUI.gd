@@ -30,6 +30,7 @@ const DRAG_SCALE: Vector2 = Vector2(1.1, 1.1)
 
 
 func _ready() -> void:
+	pivot_offset = custom_minimum_size / 2.0
 	_create_discard_button()
 
 

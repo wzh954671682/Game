@@ -16,7 +16,14 @@
       "Bash(sed -i '93r /tmp/fix_lines.txt' e:/GameDemo/Scripts/Entities/Enemy.gd)",
       "Bash(sed -i '150,151d' e:/GameDemo/Scripts/Entities/Hero.gd)",
       "Bash(sed -i '149r /tmp/fix_lines.txt' e:/GameDemo/Scripts/Entities/Hero.gd)",
-      "Bash(printf '\\\\t\\\\tif _current_frame == 0:\\\\n\\\\t\\\\t\\\\t_attack_hit_emitted = false\\\\n' > /tmp/fix_lines.txt && cat -A /tmp/fix_lines.txt)"
+      "Bash(printf '\\\\t\\\\tif _current_frame == 0:\\\\n\\\\t\\\\t\\\\t_attack_hit_emitted = false\\\\n' > /tmp/fix_lines.txt && cat -A /tmp/fix_lines.txt)",
+      "Read(//c/Users/**)",
+      "Read(//usr/**)",
+      "Bash(/c/Users/34445/AppData/Local/Programs/Python/Python313/python.exe -c ' *)",
+      "Bash(/c/Users/34445/AppData/Local/Programs/Python/Python313/python.exe)",
+      "Bash(/c/Users/34445/AppData/Local/Programs/Python/Python313/python.exe -c \"import sys; lines = open\\('e:/GameDemo/Scripts/UI/CardTrayManager.gd', encoding='utf-8'\\).readlines\\(\\); [setattr\\(sys.modules[__name__], 'ok', True\\)]; [\\(lambda i: \\(lines.__setitem__\\(i, lines[i].rstrip\\(\\) + chr\\(92\\) + chr\\(10\\)\\) if lines[i+1].lstrip\\(\\).startswith\\('.set_'\\) and lines[i].rstrip\\(\\).endswith\\('\\)'\\) and not lines[i].rstrip\\(\\).endswith\\(chr\\(92\\)\\) else None\\)\\)\\(i\\) for i in range\\(len\\(lines\\)-1\\)]; open\\('e:/GameDemo/Scripts/UI/CardTrayManager.gd', 'w', encoding='utf-8'\\).writelines\\(lines\\); print\\('OK'\\)\")",
+      "Bash(cat)",
+      "Bash(/c/Users/34445/AppData/Local/Programs/Python/Python313/python.exe /tmp/fix_gd.py)"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts",

@@ -81,6 +81,7 @@ var _hp_fill_max_width: float = 0.0
 var _hp_label: Label = null
 var _tray_anchor: ColorRect = null
 var _grid_anchor: Control = null
+var _hand_container: Control = null
 
 
 # ============================================================
@@ -238,6 +239,7 @@ func _load_battle_ui() -> void:
 	_hp_label = _battle_ui.get_node_or_null("Wall/HPLabel") as Label
 	_tray_anchor = _battle_ui.get_node_or_null("CardTrayAnchor") as ColorRect
 	_grid_anchor = _battle_ui.get_node_or_null("GridAnchor") as Control
+	_hand_container = _battle_ui.get_node_or_null("HandContainer") as Control
 
 	if _wall_node and _tray_anchor:
 		var wall_rect := Rect2(_wall_node.position, _wall_node.size)
@@ -307,17 +309,20 @@ func _setup_card_tray_manager() -> void:
 	_card_tray_manager.name = "CardTrayManager"
 	_card_tray_manager.card_created.connect(_on_card_created)
 
-	if _battle_ui:
+	if _hand_container:
+		_card_tray_manager.layout_mode = 1
+		_card_tray_manager.anchors_preset = 15
+		_hand_container.add_child(_card_tray_manager)
+	elif _battle_ui:
 		_battle_ui.add_child(_card_tray_manager)
 	else:
-		push_error("[BattleTest] BattleUI 未加载, 无法挂载 CardTrayManager")
+		push_error("[BattleTest] 无法挂载 CardTrayManager")
 		return
 
 	var card_scene: PackedScene = load(CARD_SCENE_PATH)
 	_card_tray_manager.setup(card_scene, _hero_templates)
 
-	print("[BattleTest] CardTrayManager 已挂载到 BattleUI")
-
+	print("[BattleTest] CardTrayManager 已挂载到 HandContainer")
 
 func _on_card_created(card_ui: Control) -> void:
 	card_ui.drag_started.connect(_on_card_drag_started)

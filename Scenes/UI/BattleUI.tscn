@@ -10,10 +10,11 @@ script = ExtResource("2_battle_ui_script")
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -539.0
-offset_top = 1701.0
-offset_right = 539.0
-offset_bottom = 1908.0
+offset_left = -541.0
+offset_top = 1568.0
+offset_right = 537.0
+offset_bottom = 1775.0
+grow_horizontal = 2
 texture = ExtResource("1_wall_tex")
 expand_mode = 1
 
@@ -52,28 +53,36 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -10.0
-offset_top = 1171.0
+offset_top = 1040.0
 offset_right = 10.0
-offset_bottom = 1181.0
+offset_bottom = 1050.0
 grow_horizontal = 2
 
 [node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=1668342283]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -540.0
-offset_top = 1920.0
-offset_right = 542.0
-offset_bottom = 2140.0
+offset_left = -499.0
+offset_top = 1795.0
+offset_right = 508.0
+offset_bottom = 2069.0
 grow_horizontal = 2
-color = Color(0.3, 0.5, 0.8, 0.25)
+color = Color(0, 0, 0, 0.26666668)
 
-[node name="CardStartMarker" type="Control" parent="CardTrayAnchor" unique_id=900100002]
-anchors_preset = 0
-offset_left = -85.0
-offset_top = -204.0
-offset_right = 915.0
-offset_bottom = -32.0
+[node name="HandContainer" type="Control" parent="." unique_id=900100003]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -678.0
+offset_top = -388.99988
+offset_right = 368.0
+offset_bottom = -142.99988
+grow_horizontal = 2
+grow_vertical = 0
+scale = Vector2(1.3, 1.3)
 mouse_filter = 2
 
 [node name="RescueBanner" type="Control" parent="." unique_id=526831483]
