@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI UI 设计助手 V5.0 - 开发全流程版</title>
+    <title>AI UI 设计助手 V6.0 - 开发全流程版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         .image-drop-zone { border: 2px dashed #e2e8f0; transition: all 0.3s; cursor: pointer; }
         .image-drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
         .preview-img { max-height: 80px; object-fit: contain; }
-        #cropCanvas { max-width: 100%; height: auto; border: 1px solid #ccc; cursor: crosshair; }
+        #cropCanvas, #spriteGridCanvas { max-width: 100%; height: auto; border: 1px solid #ccc; }
+        #cropCanvas { cursor: crosshair; }
         .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        .checkerboard { background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
     </style>
 </head>
 <body class="bg-slate-50 p-4 md:p-6 font-sans">
     <div class="max-w-[1600px] mx-auto">
         
         <header class="mb-6 flex justify-between items-center">
-            <h1 class="text-xl font-black text-slate-800 tracking-tight">🎨 UI DESIGN & ASSET TOOLKIT <span class="text-blue-600 text-sm">V5.0</span></h1>
+            <h1 class="text-xl font-black text-slate-800 tracking-tight">🎨 UI DESIGN & ASSET TOOLKIT <span class="text-blue-600 text-sm">V6.0</span></h1>
             <div class="space-x-4">
                 <button onclick="switchTab('promptMode')" id="tabPrompt" class="tab-btn active px-4 py-2 text-sm font-bold">AI 指令生成</button>
-                <button onclick="switchTab('assetMode')" id="tabAsset" class="tab-btn px-4 py-2 text-sm font-bold text-slate-400">开发资产处理 (抠图/裁剪)</button>
+                <button onclick="switchTab('assetMode')" id="tabAsset" class="tab-btn px-4 py-2 text-sm font-bold text-slate-400">单图资产处理 (抠图/裁剪)</button>
+                <button onclick="switchTab('spriteMode')" id="tabSprite" class="tab-btn px-4 py-2 text-sm font-bold text-slate-400">序列帧处理 (切分/预览)</button>
             </div>
         </header>
 
@@ -82,7 +86,7 @@
                     <button onclick="applyAll()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-all">执行处理并预览</button>
                     <div id="resultPreview" class="mt-4 hidden text-center">
                         <p class="text-[10px] text-slate-400 mb-2">结果预览 (透明背景)</p>
-                        <canvas id="resultCanvas" class="mx-auto border bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] rounded shadow-lg max-w-full"></canvas>
+                        <canvas id="resultCanvas" class="mx-auto border checkerboard rounded shadow-lg max-w-full"></canvas>
                         <a id="downloadLink" class="inline-block mt-4 bg-slate-800 text-white px-6 py-2 rounded-lg text-xs hover:bg-black transition-all cursor-pointer">下载处理后的 PNG</a>
                     </div>
                 </div>
@@ -101,6 +105,69 @@
             </div>
         </div>
 
+        <div id="spriteMode" class="hidden grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div class="xl:col-span-3 space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                    <div class="mb-2 w-full">
+                        <label class="block text-xs font-bold text-slate-500 mb-2">1. 上传序列帧精灵图 (Sprite Sheet)</label>
+                        <input type="file" id="spriteInput" accept="image/*" class="text-xs w-full">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">总列数 (Cols)</label>
+                            <input type="number" id="spriteCols" value="4" min="1" class="w-full p-2 bg-slate-50 border rounded-lg text-sm text-center" onchange="updateSpriteGrid()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">总行数 (Rows)</label>
+                            <input type="number" id="spriteRows" value="4" min="1" class="w-full p-2 bg-slate-50 border rounded-lg text-sm text-center" onchange="updateSpriteGrid()">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">动作组命名 (每行对应一组，换行分割)</label>
+                        <textarea id="rowNames" rows="5" class="w-full p-2 bg-slate-50 border rounded-lg text-xs font-mono" placeholder="move_down&#10;move_left&#10;move_right&#10;move_up" oninput="updateAnimSelect()"></textarea>
+                    </div>
+
+                    <hr class="border-slate-100">
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">2. 动作预览设置</label>
+                        <select id="previewAnimSelect" class="w-full p-2 mb-3 bg-slate-50 border rounded-lg text-sm" onchange="resetAnimation()">
+                            <option value="0">等待数据录入...</option>
+                        </select>
+                        
+                        <label class="block text-xs text-slate-500 mb-1 flex justify-between">
+                            <span>预览速度 (FPS)</span>
+                            <span id="fpsDisplay" class="font-bold text-blue-600">12</span>
+                        </label>
+                        <input type="range" id="fpsSlider" min="1" max="60" value="12" class="w-full" oninput="document.getElementById('fpsDisplay').innerText=this.value; resetAnimation()">
+                    </div>
+
+                    <button onclick="downloadSpriteZip()" id="zipBtn" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700 transition-all flex justify-center items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        批量下载 ZIP
+                    </button>
+                </div>
+            </div>
+
+            <div class="xl:col-span-9 space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[200px]">
+                    <h3 class="w-full text-xs font-bold text-slate-400 mb-2 border-b pb-2">动效预览窗口</h3>
+                    <div class="p-4 border rounded-lg checkerboard bg-slate-100 shadow-inner">
+                        <canvas id="spritePreviewCanvas" class="mx-auto block"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 min-h-[400px] flex flex-col items-center justify-start overflow-auto">
+                    <h3 class="w-full text-xs font-bold text-slate-400 mb-2 border-b pb-2">切片网格视图</h3>
+                    <div class="relative">
+                        <canvas id="spriteGridCanvas" class="checkerboard"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -108,11 +175,19 @@
         function switchTab(mode) {
             document.getElementById('promptMode').classList.toggle('hidden', mode !== 'promptMode');
             document.getElementById('assetMode').classList.toggle('hidden', mode !== 'assetMode');
+            document.getElementById('spriteMode').classList.toggle('hidden', mode !== 'spriteMode');
+            
             document.getElementById('tabPrompt').classList.toggle('active', mode === 'promptMode');
+            document.getElementById('tabPrompt').classList.toggle('text-slate-400', mode !== 'promptMode');
+            
             document.getElementById('tabAsset').classList.toggle('active', mode === 'assetMode');
+            document.getElementById('tabAsset').classList.toggle('text-slate-400', mode !== 'assetMode');
+            
+            document.getElementById('tabSprite').classList.toggle('active', mode === 'spriteMode');
+            document.getElementById('tabSprite').classList.toggle('text-slate-400', mode !== 'spriteMode');
         }
 
-        // --- 核心逻辑：AI 指令生成 (V4 逻辑) ---
+        // --- 核心逻辑：AI 指令生成 (原版逻辑保留) ---
         function previewImage(input, viewId) {
             const file = input.files[0];
             if (file) {
@@ -124,12 +199,11 @@
         function generatePrompt() {
             const task = document.getElementById('taskDesc').value;
             const elements = document.getElementById('elements').value;
-            const fidelity = document.getElementById('fidelity')?.value || 'strict';
             document.getElementById('output').innerText = `### UI COMPOSITION PROTOCOL\n\n**CONTEXT:** ${task}\n\n**ELEMENTS:**\n${elements}\n\n**STYLE:** From Reference B\n**STRUCTURE:** 1:1 From Wireframe A\n\n**CONSTRAINTS:** No 3D, No Blur, Orthographic 2D Only.`;
         }
         function copyPrompt() { navigator.clipboard.writeText(document.getElementById('output').innerText); alert("已复制"); }
 
-        // --- 核心逻辑：资产处理器 (V5 新增) ---
+        // --- 核心逻辑：资产处理器 (原版逻辑保留) ---
         const assetInput = document.getElementById('assetInput');
         const cropCanvas = document.getElementById('cropCanvas');
         const ctx = cropCanvas.getContext('2d');
@@ -137,6 +211,7 @@
         let startX, startY, isDragging = false, selection = { x: 0, y: 0, w: 0, h: 0 };
 
         assetInput.onchange = e => {
+            if(!e.target.files[0]) return;
             const reader = new FileReader();
             reader.onload = event => {
                 rawImg.onload = () => {
@@ -150,7 +225,6 @@
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // 鼠标交互：选择区域
         cropCanvas.onmousedown = e => {
             const rect = cropCanvas.getBoundingClientRect();
             const scaleX = cropCanvas.width / rect.width;
@@ -191,14 +265,10 @@
             const mode = document.getElementById('removeMode').value;
             const tol = parseInt(document.getElementById('tolerance').value);
 
-            // 1. 设置裁剪尺寸
             resCanvas.width = selection.w;
             resCanvas.height = selection.h;
-
-            // 2. 绘制裁剪区域
             resCtx.drawImage(rawImg, selection.x, selection.y, selection.w, selection.h, 0, 0, selection.w, selection.h);
 
-            // 3. 颜色剔除逻辑 (核心)
             if (mode !== 'none') {
                 const imgData = resCtx.getImageData(0, 0, resCanvas.width, resCanvas.height);
                 const data = imgData.data;
@@ -207,7 +277,7 @@
                     let shouldRemove = false;
                     if (mode === 'white' && r > 255 - tol && g > 255 - tol && b > 255 - tol) shouldRemove = true;
                     if (mode === 'black' && r < tol && g < tol && b < tol) shouldRemove = true;
-                    if (shouldRemove) data[i+3] = 0; // 设置透明度为 0
+                    if (shouldRemove) data[i+3] = 0; 
                 }
                 resCtx.putImageData(imgData, 0, 0);
             }
@@ -220,6 +290,206 @@
                 link.click();
             };
         }
+
+
+        // ==========================================
+        // --- 新增逻辑：序列帧处理 (Sprite Mode) ---
+        // ==========================================
+        const spriteInput = document.getElementById('spriteInput');
+        const spriteGridCanvas = document.getElementById('spriteGridCanvas');
+        const spritePreviewCanvas = document.getElementById('spritePreviewCanvas');
+        const gridCtx = spriteGridCanvas.getContext('2d');
+        const previewCtx = spritePreviewCanvas.getContext('2d');
+        
+        let spriteImg = new Image();
+        let animationInterval = null;
+        let currentFrameIndex = 0;
+
+        // 1. 读取序列帧大图
+        spriteInput.onchange = e => {
+            if(!e.target.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = event => {
+                spriteImg.onload = () => {
+                    // 初始化一些默认名字基于行数
+                    const rows = parseInt(document.getElementById('spriteRows').value) || 4;
+                    let defaultNames = [];
+                    for(let i=0; i<rows; i++) defaultNames.push(`anim_row_${i}`);
+                    if(!document.getElementById('rowNames').value.trim()) {
+                        document.getElementById('rowNames').value = defaultNames.join('\n');
+                    }
+                    
+                    updateSpriteGrid();
+                    updateAnimSelect();
+                };
+                spriteImg.src = event.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        // 2. 更新网格视图
+        function updateSpriteGrid() {
+            if (!spriteImg.src) return;
+            
+            const cols = parseInt(document.getElementById('spriteCols').value) || 1;
+            const rows = parseInt(document.getElementById('spriteRows').value) || 1;
+            
+            spriteGridCanvas.width = spriteImg.width;
+            spriteGridCanvas.height = spriteImg.height;
+            
+            // 绘制原图
+            gridCtx.clearRect(0, 0, spriteGridCanvas.width, spriteGridCanvas.height);
+            gridCtx.drawImage(spriteImg, 0, 0);
+            
+            // 绘制切分网格线
+            const frameW = spriteImg.width / cols;
+            const frameH = spriteImg.height / rows;
+            
+            gridCtx.beginPath();
+            gridCtx.strokeStyle = 'rgba(239, 68, 68, 0.8)'; // Tailwind red-500
+            gridCtx.lineWidth = 1;
+
+            // 垂直线
+            for(let c = 1; c < cols; c++) {
+                gridCtx.moveTo(c * frameW, 0);
+                gridCtx.lineTo(c * frameW, spriteGridCanvas.height);
+            }
+            // 水平线
+            for(let r = 1; r < rows; r++) {
+                gridCtx.moveTo(0, r * frameH);
+                gridCtx.lineTo(spriteGridCanvas.width, r * frameH);
+            }
+            gridCtx.stroke();
+            
+            resetAnimation();
+        }
+
+        // 3. 更新动作组下拉菜单
+        function updateAnimSelect() {
+            const names = document.getElementById('rowNames').value.split('\n').filter(n => n.trim() !== '');
+            const select = document.getElementById('previewAnimSelect');
+            select.innerHTML = '';
+            
+            if(names.length === 0) {
+                select.innerHTML = '<option value="-1">请输入动作命名</option>';
+                return;
+            }
+
+            names.forEach((name, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `第 ${index + 1} 行: ${name}`;
+                select.appendChild(opt);
+            });
+            resetAnimation();
+        }
+
+        // 4. 控制动画播放预览
+        function resetAnimation() {
+            clearInterval(animationInterval);
+            if (!spriteImg.src) return;
+
+            const cols = parseInt(document.getElementById('spriteCols').value) || 1;
+            const rows = parseInt(document.getElementById('spriteRows').value) || 1;
+            const frameW = spriteImg.width / cols;
+            const frameH = spriteImg.height / rows;
+            
+            const fps = parseInt(document.getElementById('fpsSlider').value) || 12;
+            const targetRow = parseInt(document.getElementById('previewAnimSelect').value) || 0;
+            
+            // 如果选择的行数超出了实际图片行数设置，则拦截
+            if(targetRow >= rows || targetRow < 0) return;
+
+            // 调整预览画布大小
+            spritePreviewCanvas.width = frameW;
+            spritePreviewCanvas.height = frameH;
+
+            currentFrameIndex = 0;
+            
+            animationInterval = setInterval(() => {
+                // 清空上一帧
+                previewCtx.clearRect(0, 0, frameW, frameH);
+                
+                // 绘制当前帧 (sx, sy, sw, sh, dx, dy, dw, dh)
+                previewCtx.drawImage(
+                    spriteImg, 
+                    currentFrameIndex * frameW, targetRow * frameH, frameW, frameH, 
+                    0, 0, frameW, frameH
+                );
+                
+                // 循环到下一帧
+                currentFrameIndex = (currentFrameIndex + 1) % cols;
+                
+            }, 1000 / fps);
+        }
+
+        // 5. 使用 JSZip 批量打包下载
+        async function downloadSpriteZip() {
+            if (!spriteImg.src) {
+                alert("请先上传序列帧图片！");
+                return;
+            }
+
+            const btn = document.getElementById('zipBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "打包中...";
+            btn.disabled = true;
+
+            try {
+                const zip = new JSZip();
+                const cols = parseInt(document.getElementById('spriteCols').value) || 1;
+                const rows = parseInt(document.getElementById('spriteRows').value) || 1;
+                const frameW = spriteImg.width / cols;
+                const frameH = spriteImg.height / rows;
+                
+                const namesText = document.getElementById('rowNames').value.split('\n');
+                
+                // 创建一个临时的离屏 Canvas 用于抽取单帧数据
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = frameW;
+                tempCanvas.height = frameH;
+                const tCtx = tempCanvas.getContext('2d');
+
+                for (let r = 0; r < rows; r++) {
+                    // 获取当前行的命名，如果没有则默认
+                    const groupName = (namesText[r] || `anim_row_${r}`).trim() || `anim_row_${r}`;
+                    
+                    for (let c = 0; c < cols; c++) {
+                        tCtx.clearRect(0, 0, frameW, frameH);
+                        tCtx.drawImage(
+                            spriteImg, 
+                            c * frameW, r * frameH, frameW, frameH, 
+                            0, 0, frameW, frameH
+                        );
+                        
+                        // 转为 base64 存入 zip
+                        const dataUrl = tempCanvas.toDataURL("image/png");
+                        const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+                        
+                        // 命名规则: 动作名_序号.png (序号补零)
+                        const fileName = `${groupName}_${c.toString().padStart(2, '0')}.png`;
+                        zip.file(fileName, base64Data, {base64: true});
+                    }
+                }
+
+                // 生成并下载
+                const content = await zip.generateAsync({type:"blob"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `SpriteAssets_${Date.now()}.zip`;
+                link.click();
+
+            } catch (error) {
+                console.error(error);
+                alert("打包出错，请检查控制台。");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // 初始化默认展示 promptMode
+        switchTab('promptMode');
     </script>
 </body>
 </html>
