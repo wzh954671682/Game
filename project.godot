@@ -26,8 +26,8 @@ SaveManager="*res://Scripts/Global/SaveManager.gd"
 
 [display]
 
-window/size/viewport_width=373
-window/size/viewport_height=747
+window/size/viewport_width=1080
+window/size/viewport_height=2160
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

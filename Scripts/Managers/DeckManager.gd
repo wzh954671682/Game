@@ -3,6 +3,8 @@ extends Node
 ## Hidden card queue (FIFO), auto-fill, discard, and anti-lock rescue system.
 ## Registered as Autoload. UI calls into this — never the reverse.
 
+signal card_drawn(card_id: String)
+
 const MAX_HAND_SIZE: int = 5
 const INITIAL_SILENCE_SEC: float = 5.0
 const RESCUE_COOLDOWN_SEC: float = 10.0
@@ -66,6 +68,7 @@ func discard_card(_card_id: String) -> void:
 func on_card_deployed() -> void:
 	hand_count = maxi(hand_count - 1, 0)
 	field_hero_count += 1
+	_try_fill_hand()
 
 
 func on_hero_died() -> void:
@@ -83,8 +86,9 @@ func _try_fill_hand() -> void:
 func _draw_loop() -> void:
 	_is_drawing = true
 	while hand_count < MAX_HAND_SIZE and not card_queue.is_empty():
-		card_queue.pop_front()
+		var drawn_id: String = card_queue.pop_front()
 		hand_count += 1
+		card_drawn.emit(drawn_id)
 		await get_tree().create_timer(DRAW_INTERVAL_SEC).timeout
 	_is_drawing = false
 
@@ -99,7 +103,6 @@ func _check_deadlock() -> void:
 func _trigger_rescue() -> void:
 	_rescue_cooldown_left = RESCUE_COOLDOWN_SEC
 	GameEvents.deadlock_rescue_triggered.emit()
-	# Fill with 5 basic character cards per design doc §3.2.3
 	for _i: int in range(MAX_HAND_SIZE):
 		card_queue.append("basic_hero")
 	_try_fill_hand()

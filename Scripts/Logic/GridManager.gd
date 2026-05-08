@@ -35,33 +35,17 @@ func get_logic_pos(screen_pos: Vector2) -> Vector2i:
 
 
 func _refresh_layout() -> void:
+	# Grid coordinate system is always based on the design resolution.
+	# Viewport size changes only affect cell size scaling, never the center.
+	_grid_center = Vector2(REF_WIDTH / 2.0, REF_HEIGHT / 2.0)
+
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
-	if viewport_rect.size.x <= 0.0 or viewport_rect.size.y <= 0.0:
-		return
+	var vp_w: float = viewport_rect.size.x if viewport_rect.size.x > 0.0 else float(REF_WIDTH)
+	var vp_h: float = viewport_rect.size.y if viewport_rect.size.y > 0.0 else float(REF_HEIGHT)
 
-	# Grid is always centered on the game viewport.
-	_grid_center = viewport_rect.position + viewport_rect.size * 0.5
-
-	# Safe area is only used as a vertical inset adjustment for mobile
-	# (notch at top, gesture bar at bottom). On desktop this is a near no-op
-	# because the viewport and display safe area are unrelated coordinate spaces.
-	var safe_area: Rect2 = DisplayServer.get_display_safe_area()
-	if safe_area.has_area():
-		var screen: Vector2i = DisplayServer.window_get_size()
-		if screen.x > 0 and screen.y > 0:
-			var vp_w: float = viewport_rect.size.x
-			var vp_h: float = viewport_rect.size.y
-			var s_w: float = float(screen.x)
-			var s_h: float = float(screen.y)
-			# Only meaningful when viewport covers the physical screen (mobile fullscreen)
-			if absf(vp_w - s_w) < 2.0 and absf(vp_h - s_h) < 2.0:
-				_grid_center.y += (safe_area.position.y / s_h) * vp_h * 0.5
-				_grid_center.y -= ((s_h - safe_area.end.y) / s_h) * vp_h * 0.5
-
-	var scale_x: float = viewport_rect.size.x / float(REF_WIDTH)
-	var scale_y: float = viewport_rect.size.y / float(REF_HEIGHT)
-	var scale_factor: float = minf(scale_x, scale_y)
-	_cell_size = REF_CELL_SIZE * scale_factor
+	var scale_x: float = vp_w / float(REF_WIDTH)
+	var scale_y: float = vp_h / float(REF_HEIGHT)
+	_cell_size = REF_CELL_SIZE * minf(scale_x, scale_y)
 
 
 func get_grid_center() -> Vector2:
