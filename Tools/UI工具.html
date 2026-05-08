@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI UI 设计助手 V5.0 - 开发全流程版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .image-drop-zone { border: 2px dashed #e2e8f0; transition: all 0.3s; cursor: pointer; }
+        .image-drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
+        .preview-img { max-height: 80px; object-fit: contain; }
+        #cropCanvas { max-width: 100%; height: auto; border: 1px solid #ccc; cursor: crosshair; }
+        .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-50 p-4 md:p-6 font-sans">
+    <div class="max-w-[1600px] mx-auto">
+        
+        <header class="mb-6 flex justify-between items-center">
+            <h1 class="text-xl font-black text-slate-800 tracking-tight">🎨 UI DESIGN & ASSET TOOLKIT <span class="text-blue-600 text-sm">V5.0</span></h1>
+            <div class="space-x-4">
+                <button onclick="switchTab('promptMode')" id="tabPrompt" class="tab-btn active px-4 py-2 text-sm font-bold">AI 指令生成</button>
+                <button onclick="switchTab('assetMode')" id="tabAsset" class="tab-btn px-4 py-2 text-sm font-bold text-slate-400">开发资产处理 (抠图/裁剪)</button>
+            </div>
+        </header>
+
+        <div id="promptMode" class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div class="xl:col-span-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <label class="block text-[10px] font-bold text-blue-600 mb-1">A. 布局线稿</label>
+                        <div class="image-drop-zone rounded-lg p-2 text-center" onclick="document.getElementById('inputA').click()">
+                            <input type="file" id="inputA" hidden accept="image/*" onchange="previewImage(this, 'viewA')">
+                            <div id="viewA" class="text-[10px] text-slate-400 py-2">上传线稿</div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <label class="block text-[10px] font-bold text-purple-600 mb-1">B. 风格参考</label>
+                        <div class="image-drop-zone rounded-lg p-2 text-center" onclick="document.getElementById('inputB').click()">
+                            <input type="file" id="inputB" hidden accept="image/*" onchange="previewImage(this, 'viewB')">
+                            <div id="viewB" class="text-[10px] text-slate-400 py-2">上传风格</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm space-y-3">
+                    <textarea id="taskDesc" rows="2" class="w-full p-3 bg-slate-50 rounded-lg text-xs border" placeholder="项目需求描述...">一款策略游戏的英雄上阵界面，需要硬核UI质感。</textarea>
+                    <textarea id="elements" rows="4" class="w-full p-3 bg-slate-50 rounded-lg text-xs border" placeholder="重点元素说明...">- 顶部：4个上阵槽位。
+- 下方：英雄卡牌列表，带等级、名称、进度条。</textarea>
+                    <textarea id="negPrompt" rows="2" class="w-full p-3 bg-red-50/50 border border-red-100 rounded-lg text-xs text-red-800" placeholder="负面约束...">禁止3D场景，禁止多余装饰。</textarea>
+                    <button onclick="generatePrompt()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-100">生成合成指令</button>
+                </div>
+            </div>
+            <div class="xl:col-span-7">
+                <div class="bg-slate-900 rounded-2xl shadow-xl flex flex-col h-full min-h-[400px] overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                        <span class="text-slate-400 text-xs font-mono">PROMPT_ENGINE</span>
+                        <button onclick="copyPrompt()" class="bg-blue-500 text-white px-4 py-1 rounded-full text-xs hover:bg-blue-400">复制</button>
+                    </div>
+                    <div id="output" class="p-6 text-slate-300 font-mono text-sm overflow-y-auto leading-relaxed">等待参数输入...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="assetMode" class="hidden grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div class="xl:col-span-3 space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+                    <h3 class="font-bold text-slate-800 border-b pb-2">1. 基础处理</h3>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">背景剔除类型</label>
+                        <select id="removeMode" class="w-full p-2 bg-slate-50 border rounded-lg text-sm">
+                            <option value="none">不剔除背景</option>
+                            <option value="white">剔除白色背景 (White)</option>
+                            <option value="black">剔除黑色背景 (Black)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">剔除容差 (Tolerance)</label>
+                        <input type="range" id="tolerance" min="0" max="100" value="30" class="w-full">
+                    </div>
+                    <h3 class="font-bold text-slate-800 border-b pb-2 pt-4">2. 区域裁剪</h3>
+                    <p class="text-[10px] text-slate-400 italic">在右侧图片上拖拽鼠标选择区域</p>
+                    <button onclick="applyAll()" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-all">执行处理并预览</button>
+                    <div id="resultPreview" class="mt-4 hidden text-center">
+                        <p class="text-[10px] text-slate-400 mb-2">结果预览 (透明背景)</p>
+                        <canvas id="resultCanvas" class="mx-auto border bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] rounded shadow-lg max-w-full"></canvas>
+                        <a id="downloadLink" class="inline-block mt-4 bg-slate-800 text-white px-6 py-2 rounded-lg text-xs hover:bg-black transition-all cursor-pointer">下载处理后的 PNG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="xl:col-span-9">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 min-h-[600px] flex flex-col items-center justify-start overflow-auto">
+                    <div class="mb-4 w-full flex justify-between items-center">
+                        <input type="file" id="assetInput" accept="image/*" class="text-xs">
+                        <span class="text-xs text-slate-400">支持大图裁剪与透明化</span>
+                    </div>
+                    <div id="canvasContainer" class="relative">
+                        <canvas id="cropCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 核心逻辑：页签切换 ---
+        function switchTab(mode) {
+            document.getElementById('promptMode').classList.toggle('hidden', mode !== 'promptMode');
+            document.getElementById('assetMode').classList.toggle('hidden', mode !== 'assetMode');
+            document.getElementById('tabPrompt').classList.toggle('active', mode === 'promptMode');
+            document.getElementById('tabAsset').classList.toggle('active', mode === 'assetMode');
+        }
+
+        // --- 核心逻辑：AI 指令生成 (V4 逻辑) ---
+        function previewImage(input, viewId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => document.getElementById(viewId).innerHTML = `<img src="${e.target.result}" class="preview-img rounded mx-auto">`;
+                reader.readAsDataURL(file);
+            }
+        }
+        function generatePrompt() {
+            const task = document.getElementById('taskDesc').value;
+            const elements = document.getElementById('elements').value;
+            const fidelity = document.getElementById('fidelity')?.value || 'strict';
+            document.getElementById('output').innerText = `### UI COMPOSITION PROTOCOL\n\n**CONTEXT:** ${task}\n\n**ELEMENTS:**\n${elements}\n\n**STYLE:** From Reference B\n**STRUCTURE:** 1:1 From Wireframe A\n\n**CONSTRAINTS:** No 3D, No Blur, Orthographic 2D Only.`;
+        }
+        function copyPrompt() { navigator.clipboard.writeText(document.getElementById('output').innerText); alert("已复制"); }
+
+        // --- 核心逻辑：资产处理器 (V5 新增) ---
+        const assetInput = document.getElementById('assetInput');
+        const cropCanvas = document.getElementById('cropCanvas');
+        const ctx = cropCanvas.getContext('2d');
+        let rawImg = new Image();
+        let startX, startY, isDragging = false, selection = { x: 0, y: 0, w: 0, h: 0 };
+
+        assetInput.onchange = e => {
+            const reader = new FileReader();
+            reader.onload = event => {
+                rawImg.onload = () => {
+                    cropCanvas.width = rawImg.width;
+                    cropCanvas.height = rawImg.height;
+                    ctx.drawImage(rawImg, 0, 0);
+                    selection = { x: 0, y: 0, w: rawImg.width, h: rawImg.height };
+                };
+                rawImg.src = event.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        // 鼠标交互：选择区域
+        cropCanvas.onmousedown = e => {
+            const rect = cropCanvas.getBoundingClientRect();
+            const scaleX = cropCanvas.width / rect.width;
+            const scaleY = cropCanvas.height / rect.height;
+            startX = (e.clientX - rect.left) * scaleX;
+            startY = (e.clientY - rect.top) * scaleY;
+            isDragging = true;
+        };
+
+        cropCanvas.onmousemove = e => {
+            if (!isDragging) return;
+            const rect = cropCanvas.getBoundingClientRect();
+            const scaleX = cropCanvas.width / rect.width;
+            const scaleY = cropCanvas.height / rect.height;
+            const currX = (e.clientX - rect.left) * scaleX;
+            const currY = (e.clientY - rect.top) * scaleY;
+            
+            selection.x = Math.min(startX, currX);
+            selection.y = Math.min(startY, currY);
+            selection.w = Math.abs(currX - startX);
+            selection.h = Math.abs(currY - startY);
+
+            ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+            ctx.drawImage(rawImg, 0, 0);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(selection.x, selection.y, selection.w, selection.h);
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+            ctx.fillRect(selection.x, selection.y, selection.w, selection.h);
+        };
+
+        cropCanvas.onmouseup = () => isDragging = false;
+
+        function applyAll() {
+            if (!rawImg.src) return;
+            const resCanvas = document.getElementById('resultCanvas');
+            const resCtx = resCanvas.getContext('2d');
+            const mode = document.getElementById('removeMode').value;
+            const tol = parseInt(document.getElementById('tolerance').value);
+
+            // 1. 设置裁剪尺寸
+            resCanvas.width = selection.w;
+            resCanvas.height = selection.h;
+
+            // 2. 绘制裁剪区域
+            resCtx.drawImage(rawImg, selection.x, selection.y, selection.w, selection.h, 0, 0, selection.w, selection.h);
+
+            // 3. 颜色剔除逻辑 (核心)
+            if (mode !== 'none') {
+                const imgData = resCtx.getImageData(0, 0, resCanvas.width, resCanvas.height);
+                const data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i+1], b = data[i+2];
+                    let shouldRemove = false;
+                    if (mode === 'white' && r > 255 - tol && g > 255 - tol && b > 255 - tol) shouldRemove = true;
+                    if (mode === 'black' && r < tol && g < tol && b < tol) shouldRemove = true;
+                    if (shouldRemove) data[i+3] = 0; // 设置透明度为 0
+                }
+                resCtx.putImageData(imgData, 0, 0);
+            }
+
+            document.getElementById('resultPreview').classList.remove('hidden');
+            document.getElementById('downloadLink').onclick = () => {
+                const link = document.createElement('a');
+                link.download = `asset_export_${Date.now()}.png`;
+                link.href = resCanvas.toDataURL("image/png");
+                link.click();
+            };
+        }
+    </script>
+</body>
+</html>

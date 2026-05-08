@@ -58,4 +58,4 @@ func _die() -> void:
 
 
 func _bottom_boundary() -> float:
-	return get_viewport().get_visible_rect().size.y
+	return GridManager.get_wall_boundary()

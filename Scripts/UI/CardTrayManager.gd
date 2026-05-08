@@ -4,11 +4,11 @@ extends Control
 ## Manages the card tray HUD. Creates / destroys CardUI instances in response
 ## to DeckManager.card_drawn. Does NOT handle drag logic — that stays in the
 ## parent battle scene which connects to each card's signals via card_created.
+##
+## All layout values are read from GridManager (single source of truth).
 
 signal card_created(card_ui: Control)
 
-const TRAY_HEIGHT: float = 220.0
-const TRAY_BOTTOM_MARGIN: float = 20.0
 const TRAY_MAX_WIDTH: float = 820.0
 
 var _card_scene: PackedScene = null
@@ -27,6 +27,7 @@ func setup(card_scene: PackedScene, hero_templates: Dictionary) -> void:
 func _create_tray() -> void:
 	_tray = HBoxContainer.new()
 	_tray.name = "CardTray"
+	_tray.layout_mode = 0  # manual position, not anchors
 	_tray.alignment = BoxContainer.ALIGNMENT_CENTER
 	_tray.add_theme_constant_override("separation", 8)
 	add_child(_tray)
@@ -35,13 +36,14 @@ func _create_tray() -> void:
 
 
 func _position_tray() -> void:
-	var vp_size: Vector2 = get_viewport().get_visible_rect().size
-	var tray_width: float = minf(vp_size.x - 30.0, TRAY_MAX_WIDTH)
+	var design_w: float = float(GridManager.REF_WIDTH)
+	var tray_width: float = minf(design_w - 30.0, TRAY_MAX_WIDTH)
+	var tray_top: float = GridManager.get_card_tray_top()
 	_tray.position = Vector2(
-		(vp_size.x - tray_width) / 2.0,
-		vp_size.y - TRAY_HEIGHT - TRAY_BOTTOM_MARGIN
+		(design_w - tray_width) / 2.0,
+		tray_top,
 	)
-	_tray.size = Vector2(tray_width, TRAY_HEIGHT)
+	_tray.size = Vector2(tray_width, GridManager.get_card_tray_height())
 
 
 func _on_card_drawn(card_id: String) -> void:

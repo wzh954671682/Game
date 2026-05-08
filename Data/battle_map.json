@@ -1,0 +1,9 @@
+{
+  "maps": [
+    {"level_id": "level_01", "bg_path": "res://BattleMap/ui_BattleBG_pass_01.png"},
+    {"level_id": "level_02", "bg_path": "res://BattleMap/ui_BattleBG_pass_02.png"},
+    {"level_id": "level_03", "bg_path": "res://BattleMap/ui_BattleBG_pass_03.png"},
+    {"level_id": "level_04", "bg_path": "res://BattleMap/ui_BattleBG_pass_04.png"},
+    {"level_id": "level_05", "bg_path": "res://BattleMap/ui_BattleBG_pass_05.png"}
+  ]
+}
