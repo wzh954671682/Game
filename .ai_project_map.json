@@ -106,5 +106,28 @@
     "deploy": "CardUI.drag_ended→BattleTest._deploy_hero_from_card→BattleManager.apply_displacement(recursive_max5)→tween_0.25s",
     "deadlock": "DeckManager._physics_process(1s)→hand0+queue0+field0→rescue_pkg→GameEvents.deadlock_rescue_triggered→BattleUI.banner",
     "death": "HP≤0→DEATH_state→play_deal_frames_once→tween_fadeout→queue_free"
+  },
+  "pitfalls": {
+    "title": "Godot开发规范/避坑指南",
+    "rules": [
+      {
+        "id": "PIT-001",
+        "tag": "UI挂载节点",
+        "rule": "全局 VFX 的 CanvasLayer 绝对不能作为 Window/Autoload 的子节点。Autoload 是 Window 的直接子节点，不在 2D Viewport 渲染子树内，其子 CanvasLayer 不会渲染。必须挂载到 camera.get_parent()（即 2D Viewport 渲染子树内的节点，如 BattleTest）。",
+        "code": "_damage_canvas = CanvasLayer.new(); camera.get_parent().add_child(_damage_canvas)"
+      },
+      {
+        "id": "PIT-002",
+        "tag": "坐标转换公式",
+        "rule": "世界坐标转 UI 画布坐标，必须严格使用 get_canvas_transform().affine_inverse() * world_pos。canvas_transform 的方向是 canvas→world，取逆才是 world→canvas。绝不能用错矩阵方向，否则坐标完全偏移。",
+        "code": "screen_pos = camera.get_canvas_transform().affine_inverse() * world_pos"
+      },
+      {
+        "id": "PIT-003",
+        "tag": "UI尺寸基准",
+        "rule": "本项目设计高度 2160px。所有动态生成的 Label 文本字号基准不得小于 36px，描边 outline_size 至少为 3。若小于此基准，在高分辨率下文字肉眼不可见。",
+        "code": "label.add_theme_font_size_override(\"font_size\", 36); label.add_theme_constant_override(\"outline_size\", 3)"
+      }
+    ]
   }
 }

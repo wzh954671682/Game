@@ -131,6 +131,7 @@ func take_damage(amount: int) -> bool:
 		return false
 
 	current_hp -= amount
+	VFXManager.show_damage_text(global_position, amount)
 
 	if current_hp <= 0:
 		_die()
@@ -155,6 +156,14 @@ func _die() -> void:
 
 	GameEvents.enemy_died.emit(global_position)
 	_apply_state(State.DEATH)
+
+	# 死亡视觉增强: 缩放缩小 + 轻微上漂
+	if _sprite:
+		var death_tween := create_tween()
+		death_tween.set_parallel(true)
+		death_tween.tween_property(_sprite, "scale", Vector2(0.2, 0.2), 0.5)\
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		death_tween.tween_property(_sprite, "position:y", _sprite.position.y - 40, 0.5)
 
 
 func _on_death_animation_finished() -> void:
