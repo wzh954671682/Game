@@ -22,7 +22,10 @@ const CARD_SCENE_PATH: String = "res://Scenes/CardUI.tscn"
 const HERO_DATA_PATH: String = "res://Data/heroes_progression.json"
 const SPAWN_INTERVAL_SEC: float = 3.0
 const SPAWN_OFFSET_ABOVE_SCREEN: float = -300.0
-const INITIAL_CARD_POOL: Array[String] = ["shielder_01", "shielder_01", "shielder_01", "gunner_01", "gunner_01"]
+const INITIAL_CARD_POOL: Array[String] = [
+	"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
+	"gunner_01", "gunner_01", "gunner_01", "gunner_01", "gunner_01",
+]
 const FALLBACK_CARD_ID: String = "shielder_01"
 
 # Core systems
@@ -45,6 +48,7 @@ var _active_drag_card: Control = null
 var _ghost_sprite: Sprite2D = null
 var _highlight_grid_pos: Vector2i = Vector2i(-1, -1)
 var _highlight_valid: bool = false
+var _highlight_synthesis: bool = false
 
 
 # ============================================================
@@ -76,9 +80,25 @@ func _process(_delta: float) -> void:
 
 	var grid_pos: Vector2i = GridManager.get_logic_pos(mouse_pos)
 	_highlight_grid_pos = grid_pos
-	_highlight_valid = not _placed_heroes.has(grid_pos)
 
-	_ghost_sprite.self_modulate = Color.GREEN if _highlight_valid else Color.RED
+	# Phase 9: synthesis detection — gold highlight when dragging same-ID card over hero
+	_highlight_synthesis = false
+	if _placed_heroes.has(grid_pos):
+		var existing: Node2D = _placed_heroes[grid_pos]
+		if existing.has_method("can_star_up") and existing.can_star_up(_active_drag_card.card_id):
+			_highlight_synthesis = true
+			_highlight_valid = false
+		else:
+			_highlight_valid = false
+	else:
+		_highlight_valid = true
+
+	if _highlight_synthesis:
+		_ghost_sprite.self_modulate = Color.GOLD
+	elif _highlight_valid:
+		_ghost_sprite.self_modulate = Color.GREEN
+	else:
+		_ghost_sprite.self_modulate = Color.RED
 	queue_redraw()
 
 
@@ -200,7 +220,13 @@ func _draw() -> void:
 	var cell_center: Vector2 = GridManager.get_screen_pos(_highlight_grid_pos)
 	var half: Vector2 = Vector2(95, 95)  # REF_CELL_SIZE / 2
 	var rect: Rect2 = Rect2(cell_center - half, half * 2)
-	var color: Color = Color.GREEN if _highlight_valid else Color.RED
+	var color: Color
+	if _highlight_synthesis:
+		color = Color.GOLD
+	elif _highlight_valid:
+		color = Color.GREEN
+	else:
+		color = Color.RED
 	color.a = 0.25
 	draw_rect(rect, color, true)
 	draw_rect(rect, color, false, 2.0)
@@ -218,6 +244,7 @@ func _on_card_drag_started(card_ui: Control) -> void:
 func _on_card_drag_ended(card_ui: Control, screen_pos: Vector2) -> void:
 	_ghost_sprite.visible = false
 	_highlight_grid_pos = Vector2i(-1, -1)
+	_highlight_synthesis = false
 	queue_redraw()
 
 	var vp_rect: Rect2 = get_viewport().get_visible_rect()
@@ -236,8 +263,19 @@ func _on_card_drag_ended(card_ui: Control, screen_pos: Vector2) -> void:
 	# Coordinate alignment: hand area → grid logic → screen position
 	var grid_pos: Vector2i = GridManager.get_logic_pos(screen_pos)
 
-	# Reject drops on occupied cells
+	# Phase 9: synthesis detection — same hero_id on occupied cell = star-up
 	if _placed_heroes.has(grid_pos):
+		var existing_hero: Node2D = _placed_heroes[grid_pos]
+		var same_id: bool = existing_hero.get("hero_id") == card_ui.card_id
+		var can_up: bool = existing_hero.has_method("can_star_up") and existing_hero.can_star_up(card_ui.card_id)
+
+		if same_id and can_up:
+			_synthesize_hero(existing_hero, card_ui)
+			_destroy_card(card_ui)
+			return
+		elif same_id:
+			print("[BattleTest] 星级已满: %s 已达5★, 无法继续合成" % card_ui.hero_name)
+
 		_cancel_deploy(card_ui)
 		return
 
@@ -250,12 +288,23 @@ func _on_card_drag_cancelled(card_ui: Control) -> void:
 	_active_drag_card = null
 	_ghost_sprite.visible = false
 	_highlight_grid_pos = Vector2i(-1, -1)
+	_highlight_synthesis = false
 	queue_redraw()
 
 
 func _cancel_deploy(card_ui: Control) -> void:
 	_active_drag_card = null
+	_highlight_synthesis = false
 	card_ui.cancel_drag()
+
+
+func _synthesize_hero(hero: Node2D, card_ui: Control) -> void:
+	_active_drag_card = null
+	_highlight_synthesis = false
+
+	hero.star_up()
+
+	print("[BattleTest] 合成成功: %s → %d★ (%s)" % [card_ui.hero_name, hero.current_star, hero.get_star_label()])
 
 
 func _destroy_card(card_ui: Control) -> void:
@@ -377,7 +426,7 @@ func _on_enemy_died(pos: Vector2) -> void:
 
 func _print_header() -> void:
 	print("=")
-	print("  Phase 8 — 交互与手牌系统 (Card Tray System)")
-	print("  CardTrayManager + CardUI 自管理拖拽 + Ghost/Highlight")
+	print("  Phase 9 — 英雄合成与星级进化系统 (Star-Up System)")
+	print("  拖拽同ID卡牌到已有英雄 = 合成升星 | 绿色=部署 金色=合成 红色=阻挡")
 	print("  分辨率: 1080x2160 | stretch=canvas_items/expand")
 	print("=")
