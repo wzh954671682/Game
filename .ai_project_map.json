@@ -1,0 +1,110 @@
+{
+  "v": 1,
+  "engine": "godot4.6",
+  "name": "GameDemo-w",
+  "res": [1080, 2160],
+  "dirs": {
+    "scripts": "Scripts",
+    "scenes": "Scenes",
+    "assets": "Assets",
+    "data": "Data",
+    "maps": "BattleMap",
+    "docs": "Docs",
+    "tools": "Tools"
+  },
+  "al": [
+    {"n": "GameEvents", "f": "Scripts/Global/GameEvents.gd", "r": "sigbus"},
+    {"n": "GridManager", "f": "Scripts/Logic/GridManager.gd", "r": "grid"},
+    {"n": "DataManager", "f": "Scripts/Global/DataManager.gd", "r": "json"},
+    {"n": "BattleManager", "f": "Scripts/Managers/BattleManager.gd", "r": "occ"},
+    {"n": "DeckManager", "f": "Scripts/Managers/DeckManager.gd", "r": "deck"},
+    {"n": "VFXManager", "f": "Scripts/Global/VFXManager.gd", "r": "vfx"},
+    {"n": "SaveManager", "f": "Scripts/Global/SaveManager.gd", "r": "save"}
+  ],
+  "gd": {
+    "Scripts/Entities/Hero.gd": {
+      "ext": "Node2D",
+      "fsm": ["STANDBY", "ATTACK", "DEATH"],
+      "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval"],
+      "sig": [],
+      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused"],
+      "stars": { "max": 5, "mult": [1.0, 1.5, 2.2, 3.0, 4.5], "scale": 0.1, "heal": 0.2 }
+    },
+    "Scripts/Entities/Enemy.gd": {
+      "ext": "Area2D",
+      "fsm": ["MOVE", "ATTACK", "DEATH"],
+      "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval"],
+      "sig": ["attack_hit"],
+      "m": ["take_damage", "set_paused"]
+    },
+    "Scripts/Global/GameEvents.gd": {
+      "ext": "Node",
+      "sig": ["wall_hit", "enemy_died", "card_deployed", "deadlock_rescue_triggered", "wall_hp_changed", "game_over"]
+    },
+    "Scripts/Global/DataManager.gd": { "ext": "Node", "m": ["load_json"] },
+    "Scripts/Global/SaveManager.gd": { "ext": "Node", "m": ["save_game", "load_game"] },
+    "Scripts/Global/VFXManager.gd": { "ext": "Node", "m": ["hit_stop"], "note": "PROCESS_MODE_ALWAYS" },
+    "Scripts/Logic/GridManager.gd": {
+      "ext": "Node",
+      "c": { "cols": 5, "rows": 5, "cell": 190, "rw": 1080, "rh": 2160 },
+      "m": ["get_screen_pos", "get_logic_pos", "get_wall_boundary", "get_card_tray_top", "apply_scene_layout", "set_grid_anchor_pos", "get_grid_center"]
+    },
+    "Scripts/Managers/BattleManager.gd": {
+      "ext": "Node",
+      "m": ["apply_displacement", "register_entity", "unregister_entity"],
+      "c": { "max_recurse": 5, "tween_dur": 0.25 }
+    },
+    "Scripts/Managers/DeckManager.gd": {
+      "ext": "Node",
+      "sig": ["card_drawn"],
+      "c": { "max_hand": 5, "rescue_cd": 10, "draw_interval": 0.1, "scan_interval": 1.0, "init_silence": 5.0 },
+      "m": ["start_battle"]
+    },
+    "Scripts/UI/BattleUI.gd": { "ext": "CanvasLayer" },
+    "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
+    "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup"] },
+    "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
+    "Scripts/Test/BattleTest.gd": {
+      "ext": "Node2D",
+      "r": "orchestrator",
+      "c": { "wall_hp": 50, "spawn_interval": 3.0, "speed_range": [70, 130] }
+    }
+  },
+  "tscn": {
+    "Scenes/BattleTest.tscn": { "s": "Scripts/Test/BattleTest.gd", "root": "Node2D", "ch": ["MapBackground"] },
+    "Scenes/Hero.tscn": { "s": "Scripts/Entities/Hero.gd", "root": "Node2D", "ch": ["Sprite2D", "RayCast2D"] },
+    "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D"] },
+    "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["Panel", "Icon", "Label"] },
+    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"] }
+  },
+  "res": {
+    "hero": {
+      "path": "Assets/Heroes/hero_{sid}/hero_{sid}_{anim}_{idx}.png",
+      "idmap": { "shielder_01": "001", "gunner_01": "001" },
+      "anims": { "standby": 4, "attack": 4, "deal": 4 },
+      "list": ["hero_001"]
+    },
+    "enemy": {
+      "path": "Assets/Monsters/monster_{mid}/monster{mid}_{anim}_{idx}.png",
+      "mid": "01",
+      "anims": { "move": 4, "attack": 4, "deal": 4 },
+      "list": ["monster_01"]
+    },
+    "shader": { "hit_flash": "Assets/Shaders/hit_flash.gdshader" },
+    "ui": { "wall": "Assets/UI/wall_001.png" },
+    "bg": { "pat": "BattleMap/ui_BattleBG_pass_{n}.png", "n": [1, 5] }
+  },
+  "json": {
+    "heroes_progression": "Data/heroes_progression.json",
+    "battle_logic": "Data/battle_logic_config.json",
+    "battle_map": "Data/battle_map.json",
+    "error_codes": "Data/error_codes.json",
+    "wall_config": "Data/wall_config.json"
+  },
+  "flow": {
+    "intercept": "Hero.try_intercept→RayCast2D→Enemy.set_paused(true)→both_ATTACK→Hero.frame2_deal_dmg; Enemy.attack_hit_signal→Hero.take_damage",
+    "deploy": "CardUI.drag_ended→BattleTest._deploy_hero_from_card→BattleManager.apply_displacement(recursive_max5)→tween_0.25s",
+    "deadlock": "DeckManager._physics_process(1s)→hand0+queue0+field0→rescue_pkg→GameEvents.deadlock_rescue_triggered→BattleUI.banner",
+    "death": "HP≤0→DEATH_state→play_deal_frames_once→tween_fadeout→queue_free"
+  }
+}

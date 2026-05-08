@@ -7,7 +7,6 @@
 script = ExtResource("1_nm5wh")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=390117118]
-self_modulate = Color(0.6331337, 0.561118, 0, 1)
 texture = ExtResource("2_ce415")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=1782547104]

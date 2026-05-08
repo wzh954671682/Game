@@ -91,6 +91,8 @@ func _update_animation(delta: float) -> void:
 			return
 	else:
 		_current_frame %= frames.size()
+		if _current_frame == 0:
+			_attack_hit_emitted = false
 
 	_sprite.texture = frames[_current_frame]
 

@@ -9,10 +9,18 @@
       "Bash(git checkout *)",
       "Bash(python /tmp/battle_test_edits.py)",
       "Bash(python f:/GAME-demo/game-demo-w/tmp_edit.py)",
-      "Bash(python f:/GAME-demo/game-demo-w/tmp_edit2.py)"
+      "Bash(python f:/GAME-demo/game-demo-w/tmp_edit2.py)",
+      "Bash(printf '\\\\t\\\\t\\\\tif _current_frame == 0:\\\\n\\\\t\\\\t\\\\t\\\\t_attack_hit_emitted = false\\\\n')",
+      "Read(//tmp/**)",
+      "Bash(sed -i '94,95d' e:/GameDemo/Scripts/Entities/Enemy.gd)",
+      "Bash(sed -i '93r /tmp/fix_lines.txt' e:/GameDemo/Scripts/Entities/Enemy.gd)",
+      "Bash(sed -i '150,151d' e:/GameDemo/Scripts/Entities/Hero.gd)",
+      "Bash(sed -i '149r /tmp/fix_lines.txt' e:/GameDemo/Scripts/Entities/Hero.gd)",
+      "Bash(printf '\\\\t\\\\tif _current_frame == 0:\\\\n\\\\t\\\\t\\\\t_attack_hit_emitted = false\\\\n' > /tmp/fix_lines.txt && cat -A /tmp/fix_lines.txt)"
     ],
     "additionalDirectories": [
-      "f:\\GAME-demo\\game-demo-w\\Scripts"
+      "f:\\GAME-demo\\game-demo-w\\Scripts",
+      "\\tmp"
     ]
   }
 }
