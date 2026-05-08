@@ -78,7 +78,9 @@ var _battle_ui: CanvasLayer = null
 var _wall_node: TextureRect = null
 var _hp_bar_fill: ColorRect = null
 var _hp_fill_max_width: float = 0.0
+var _hp_label: Label = null
 var _tray_anchor: ColorRect = null
+var _grid_anchor: Control = null
 
 
 # ============================================================
@@ -213,7 +215,7 @@ func _load_map_background() -> void:
 		return
 
 	_map_sprite.texture = tex
-	_map_sprite.position = Vector2.ZERO
+	_map_sprite.position = Vector2(GridManager.REF_WIDTH / 2.0, GridManager.REF_HEIGHT / 2.0)
 	print("[BattleTest] 关卡 %s 地图背景已加载: %s" % [current_level_id, bg_path])
 
 
@@ -233,7 +235,9 @@ func _load_battle_ui() -> void:
 
 	_wall_node = _battle_ui.get_node_or_null("Wall") as TextureRect
 	_hp_bar_fill = _battle_ui.get_node_or_null("Wall/HPBarFill") as ColorRect
+	_hp_label = _battle_ui.get_node_or_null("Wall/HPLabel") as Label
 	_tray_anchor = _battle_ui.get_node_or_null("CardTrayAnchor") as ColorRect
+	_grid_anchor = _battle_ui.get_node_or_null("GridAnchor") as Control
 
 	if _wall_node and _tray_anchor:
 		var wall_rect := Rect2(_wall_node.position, _wall_node.size)
@@ -244,6 +248,13 @@ func _load_battle_ui() -> void:
 
 	if _hp_bar_fill:
 		_hp_fill_max_width = _hp_bar_fill.size.x
+
+	if _hp_label:
+		_hp_label.text = "%d/%d" % [_wall_current_hp, WALL_MAX_HP]
+
+	if _grid_anchor:
+		var anchor_center := _grid_anchor.global_position + _grid_anchor.size * 0.5
+		GridManager.set_grid_anchor_pos(anchor_center)
 
 	print("[BattleTest] BattleUI.tscn 已加载到 CanvasLayer")
 
@@ -462,14 +473,29 @@ func _deploy_hero_from_card(grid_pos: Vector2i, card_ui: Control) -> void:
 
 	var hero: Node2D = _hero_scene.instantiate()
 	hero.name = "Hero_%s" % card_ui.hero_name
-	hero.global_position = GridManager.get_screen_pos(grid_pos)
+
+	var drop_start := GridManager.get_screen_pos(grid_pos)
+	drop_start.y -= 200.0
+	hero.global_position = drop_start
 	hero.init_hero(template)
 
 	add_child(hero)
-	BattleManager.register_entity(hero, grid_pos)
-	_placed_heroes[grid_pos] = hero
+	BattleManager.apply_displacement(hero, grid_pos)
+	_sync_placed_heroes()
 
 	print("[BattleTest] 英雄部署: %s → 格子 %s" % [card_ui.hero_name, grid_pos])
+
+
+# ============================================================
+# Grid 同步
+# ============================================================
+
+func _sync_placed_heroes() -> void:
+	_placed_heroes.clear()
+	for pos: Vector2i in BattleManager.grid_occupants:
+		var entity: Node2D = BattleManager.grid_occupants[pos]
+		if entity.has_method("init_hero"):
+			_placed_heroes[pos] = entity
 
 
 # ============================================================
@@ -493,6 +519,9 @@ func _on_wall_hit(damage: int) -> void:
 
 	var old_hp: int = _wall_current_hp
 	_wall_current_hp = maxi(_wall_current_hp - damage, 0)
+
+	if _hp_label:
+		_hp_label.text = "%d/%d" % [_wall_current_hp, WALL_MAX_HP]
 
 	# Red flash via Wall ColorRect
 	_wall_flash_active = true
@@ -530,6 +559,9 @@ func _on_wall_hp_tween_step(value: float) -> void:
 			_hp_bar_fill.color = HP_COLOR_YELLOW
 		else:
 			_hp_bar_fill.color = HP_COLOR_RED
+
+	if _hp_label:
+		_hp_label.text = "%d/%d" % [int(_wall_displayed_hp), WALL_MAX_HP]
 
 
 func _trigger_game_over() -> void:

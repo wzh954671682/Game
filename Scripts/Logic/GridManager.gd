@@ -34,6 +34,10 @@ const LAYOUT_WALL_TO_TRAY_GAP: float = 30.0
 var _cell_size: float = 0.0
 var _grid_center: Vector2 = Vector2.ZERO
 
+# GridAnchor override (dynamic, set by BattleTest from BattleUI.tscn GridAnchor node)
+var _grid_anchor_pos: Vector2 = Vector2.ZERO
+var _has_grid_anchor: bool = false
+
 # Scene-driven layout overrides
 var _has_scene_layout: bool = false
 var _scene_wall_top: float = 0.0
@@ -50,6 +54,13 @@ func _ready() -> void:
 # ============================================================
 # Scene layout injection (called by BattleTest after loading BattleUI.tscn)
 # ============================================================
+
+func set_grid_anchor_pos(pos: Vector2) -> void:
+	_grid_anchor_pos = pos
+	_has_grid_anchor = true
+	_refresh_layout()
+	print("[GridManager] GridAnchor 位置已注入: %s" % pos)
+
 
 func apply_scene_layout(wall_rect: Rect2, tray_rect: Rect2) -> void:
 	_scene_wall_top = wall_rect.position.y
@@ -126,11 +137,12 @@ func get_wall_bottom() -> float:
 # ============================================================
 
 func _refresh_layout() -> void:
-	# Grid center X is always viewport horizontal centre.
-	# Grid center Y is the midpoint between viewport top and wall boundary.
-	var grid_top: float = 0.0
-	var grid_bottom: float = get_wall_boundary()
-	_grid_center = Vector2(REF_WIDTH / 2.0, (grid_top + grid_bottom) / 2.0)
+	if _has_grid_anchor:
+		_grid_center = _grid_anchor_pos
+	else:
+		var grid_top: float = 0.0
+		var grid_bottom: float = get_wall_boundary()
+		_grid_center = Vector2(REF_WIDTH / 2.0, (grid_top + grid_bottom) / 2.0)
 
 	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
 	var vp_w: float = viewport_rect.size.x if viewport_rect.size.x > 0.0 else float(REF_WIDTH)

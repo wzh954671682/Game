@@ -14,6 +14,7 @@ const TRAY_MAX_WIDTH: float = 820.0
 var _card_scene: PackedScene = null
 var _hero_templates: Dictionary = {}
 var _tray: HBoxContainer = null
+var _tray_wrapper: CenterContainer = null
 
 
 func setup(card_scene: PackedScene, hero_templates: Dictionary) -> void:
@@ -27,23 +28,26 @@ func setup(card_scene: PackedScene, hero_templates: Dictionary) -> void:
 func _create_tray() -> void:
 	_tray = HBoxContainer.new()
 	_tray.name = "CardTray"
-	_tray.layout_mode = 0  # manual position, not anchors
 	_tray.alignment = BoxContainer.ALIGNMENT_CENTER
 	_tray.add_theme_constant_override("separation", 8)
-	add_child(_tray)
+
+	_tray_wrapper = CenterContainer.new()
+	_tray_wrapper.name = "CardTrayWrapper"
+	_tray_wrapper.add_child(_tray)
+	add_child(_tray_wrapper)
 	_position_tray()
 	get_tree().root.size_changed.connect(_position_tray)
 
 
-func _position_tray() -> void:
+func _position_tray(_caller: String = "") -> void:
 	var design_w: float = float(GridManager.REF_WIDTH)
 	var tray_width: float = minf(design_w - 30.0, TRAY_MAX_WIDTH)
 	var tray_top: float = GridManager.get_card_tray_top()
-	_tray.position = Vector2(
-		(design_w - tray_width) / 2.0,
-		tray_top,
-	)
-	_tray.size = Vector2(tray_width, GridManager.get_card_tray_height())
+	var tray_height: float = GridManager.get_card_tray_height()
+
+	_tray_wrapper.layout_mode = 0
+	_tray_wrapper.position = Vector2((design_w - tray_width) / 2.0, tray_top)
+	_tray_wrapper.size = Vector2(tray_width, tray_height)
 
 
 func _on_card_drawn(card_id: String) -> void:
@@ -63,3 +67,4 @@ func _on_card_drawn(card_id: String) -> void:
 	tween.tween_property(card, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	card_created.emit(card)
+	_position_tray()

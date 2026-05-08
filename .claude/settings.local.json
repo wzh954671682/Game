@@ -5,7 +5,11 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(mkdir \"f:/GAME-demo/game-demo-w/Scripts/Test\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(git checkout *)",
+      "Bash(python /tmp/battle_test_edits.py)",
+      "Bash(python f:/GAME-demo/game-demo-w/tmp_edit.py)",
+      "Bash(python f:/GAME-demo/game-demo-w/tmp_edit2.py)"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts"

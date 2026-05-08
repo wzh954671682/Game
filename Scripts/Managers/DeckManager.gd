@@ -103,6 +103,35 @@ func _check_deadlock() -> void:
 func _trigger_rescue() -> void:
 	_rescue_cooldown_left = RESCUE_COOLDOWN_SEC
 	GameEvents.deadlock_rescue_triggered.emit()
-	for _i: int in range(MAX_HAND_SIZE):
-		card_queue.append("basic_hero")
+
+	var rescue_cards: Array[String] = _load_rescue_package()
+	for card_id: String in rescue_cards:
+		card_queue.append(card_id)
 	_try_fill_hand()
+
+
+func _load_rescue_package() -> Array[String]:
+	var config: Dictionary = DataManager.load_json("res://Data/battle_logic_config.json")
+	if config.is_empty():
+		return _fallback_rescue_package()
+
+	var rescue: Dictionary = config.get("rescue_system", {})
+	var package: Array = rescue.get("package_content", [])
+	if package.is_empty():
+		return _fallback_rescue_package()
+
+	var cards: Array[String] = []
+	for entry: Dictionary in package:
+		var hero_id: String = entry.get("hero_id", "")
+		var count: int = entry.get("count", 0)
+		if hero_id.is_empty() or count <= 0:
+			continue
+		for _i: int in range(count):
+			cards.append(hero_id)
+	if cards.is_empty():
+		return _fallback_rescue_package()
+	return cards
+
+
+func _fallback_rescue_package() -> Array[String]:
+	return ["shielder_01", "shielder_01", "gunner_01", "gunner_01", "gunner_01"]

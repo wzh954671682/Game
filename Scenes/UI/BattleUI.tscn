@@ -1,17 +1,23 @@
 [gd_scene format=3 uid="uid://1axuf321pnip"]
 
 [ext_resource type="Texture2D" uid="uid://cono1ujblpfpp" path="res://Assets/UI/wall_001.png" id="1_wall_tex"]
+[ext_resource type="Script" uid="uid://b3jpgdg68iq0p" path="res://Scripts/UI/BattleUI.gd" id="2_battle_ui_script"]
 
-[node name="BattleUI" type="CanvasLayer" unique_id=1678987044]
+[node name="BattleUI" type="CanvasLayer" unique_id=738200246]
+script = ExtResource("2_battle_ui_script")
 
-[node name="Wall" type="TextureRect" parent="." unique_id=1912305395]
+[node name="Wall" type="TextureRect" parent="." unique_id=1234016906]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -539.0
 offset_top = 1701.0
-offset_right = 1077.6804
+offset_right = 539.0
 offset_bottom = 1908.0
 texture = ExtResource("1_wall_tex")
 expand_mode = 1
 
-[node name="HPBarBg" type="ColorRect" parent="Wall" unique_id=2090602701]
+[node name="HPBarBg" type="ColorRect" parent="Wall" unique_id=598266650]
 layout_mode = 0
 offset_left = 155.0
 offset_top = 46.0
@@ -19,7 +25,7 @@ offset_right = 955.0
 offset_bottom = 60.0
 color = Color(0.12, 0.12, 0.12, 0.85)
 
-[node name="HPBarFill" type="ColorRect" parent="Wall" unique_id=2136088646]
+[node name="HPBarFill" type="ColorRect" parent="Wall" unique_id=413737173]
 layout_mode = 0
 offset_left = 155.0
 offset_top = 46.0
@@ -27,9 +33,69 @@ offset_right = 955.0
 offset_bottom = 60.0
 color = Color(0.2, 0.8, 0.3, 0.95)
 
-[node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=943543237]
-offset_left = 130.0
+[node name="HPLabel" type="Label" parent="Wall" unique_id=1006592428]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 16.0
+offset_right = 955.0
+offset_bottom = 92.0
+theme_override_constants/outline_size = 10
+theme_override_constants/shadow_outline_size = 10
+theme_override_font_sizes/font_size = 42
+text = "50/50"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GridAnchor" type="Control" parent="." unique_id=688520752]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -10.0
+offset_top = 1171.0
+offset_right = 10.0
+offset_bottom = 1181.0
+grow_horizontal = 2
+
+[node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=1668342283]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -540.0
 offset_top = 1920.0
-offset_right = 950.0
+offset_right = 542.0
 offset_bottom = 2140.0
+grow_horizontal = 2
 color = Color(0.3, 0.5, 0.8, 0.25)
+
+[node name="RescueBanner" type="Control" parent="." unique_id=526831483]
+visible = false
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 200.0
+offset_right = 200.0
+offset_bottom = 280.0
+grow_horizontal = 2
+
+[node name="BannerBg" type="ColorRect" parent="RescueBanner" unique_id=1420052789]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 0.85)
+
+[node name="BannerLabel" type="Label" parent="RescueBanner" unique_id=663431212]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "补给抵达"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -6,7 +6,7 @@ extends Node
 
 const MAX_RECURSIVE_DEPTH: int = 5
 
-var _grid_occupants: Dictionary = {}
+var grid_occupants: Dictionary = {}
 
 
 func apply_displacement(target: Node2D, target_logic_pos: Vector2i) -> void:
@@ -14,7 +14,7 @@ func apply_displacement(target: Node2D, target_logic_pos: Vector2i) -> void:
 
 
 func register_entity(entity: Node2D, logic_pos: Vector2i) -> void:
-	_grid_occupants[logic_pos] = entity
+	grid_occupants[logic_pos] = entity
 
 
 func unregister_entity(entity: Node2D) -> void:
@@ -26,13 +26,13 @@ func _apply_displacement_recursive(target: Node2D, target_logic_pos: Vector2i, d
 		push_warning("BattleManager: 强制位移达到最大递归深度 " + str(MAX_RECURSIVE_DEPTH) + "，目标: " + target.name)
 		return
 
-	var occupant: Variant = _grid_occupants.get(target_logic_pos, null)
+	var occupant: Variant = grid_occupants.get(target_logic_pos, null)
 	if occupant != null and occupant != target:
 		var next_logic_pos: Vector2i = target_logic_pos + Vector2i(0, -1)
 		_apply_displacement_recursive(occupant as Node2D, next_logic_pos, depth + 1)
 
 	_remove_occupant(target)
-	_grid_occupants[target_logic_pos] = target
+	grid_occupants[target_logic_pos] = target
 
 	var screen_pos: Vector2 = GridManager.get_screen_pos(target_logic_pos)
 
@@ -43,7 +43,7 @@ func _apply_displacement_recursive(target: Node2D, target_logic_pos: Vector2i, d
 
 
 func _remove_occupant(entity: Node2D) -> void:
-	for pos: Vector2i in _grid_occupants.keys():
-		if _grid_occupants[pos] == entity:
-			_grid_occupants.erase(pos)
+	for pos: Vector2i in grid_occupants.keys():
+		if grid_occupants[pos] == entity:
+			grid_occupants.erase(pos)
 			return
