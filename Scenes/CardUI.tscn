@@ -1,10 +1,12 @@
 [gd_scene format=3 uid="uid://cardui001test"]
 
 [ext_resource type="Script" uid="uid://dcardui001scr" path="res://Scripts/UI/CardUI.gd" id="1_card"]
+[ext_resource type="Texture2D" uid="uid://c2hnnn5n1mf4i" path="res://icon.svg" id="2_icon"]
 
 [node name="CardUI" type="Control" unique_id=500100001]
 custom_minimum_size = Vector2(150, 200)
 layout_mode = 3
+mouse_filter = 0
 script = ExtResource("1_card")
 
 [node name="Panel" type="Panel" parent="." unique_id=500100002]
@@ -17,6 +19,22 @@ offset_left = 2.0
 offset_top = 2.0
 offset_right = -2.0
 offset_bottom = -2.0
+
+[node name="Icon" type="TextureRect" parent="." unique_id=500100004]
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.35
+anchor_right = 0.5
+anchor_bottom = 0.35
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_icon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Label" type="Label" parent="." unique_id=500100003]
 layout_mode = 1

@@ -1,15 +1,19 @@
 extends Node2D
 
-## Phase 7 — 卡牌拖拽部署系统
+## Phase 8 — 交互与手牌系统 (Card Tray System)
 ##
 ## 依赖: Scenes/Hero.tscn, Scenes/Enemy.tscn, Scenes/CardUI.tscn
 ## 用法: 直接运行 BattleTest.tscn 场景 (F6)
 ##
+## 架构:
+##   - CardTrayManager 管理卡牌托盘, 响应 DeckManager.card_drawn
+##   - CardUI 自管理完整拖拽生命周期 (press → drag → release/cancel)
+##   - BattleTest 只负责战场侧: 虚影/高亮/部署/敌人生成
+##
 ## 功能:
-##   - 底部卡牌托盘，卡牌从 DeckManager 队列自动补充
-##   - 拖拽卡牌到棋盘空格子部署英雄
-##   - 虚影跟随鼠标 + 绿色/红色网格高亮
-##   - 卡牌弹跳入场动画
+##   - 底部卡牌托盘, 卡牌从 DeckManager 队列自动补充
+##   - 拖拽卡牌到棋盘空格子部署英雄 (坐标: GridManager.get_logic_pos)
+##   - 虚影跟随鼠标 + 绿色/红色网格高亮吸附预览
 ##   - 英雄拦截 + 击杀 + 顿帧 (Phase 6 功能保留)
 
 const HERO_SCENE_PATH: String = "res://Scenes/Hero.tscn"
@@ -20,15 +24,12 @@ const SPAWN_INTERVAL_SEC: float = 3.0
 const SPAWN_OFFSET_ABOVE_SCREEN: float = -300.0
 const INITIAL_CARD_POOL: Array[String] = ["shielder_01", "shielder_01", "shielder_01", "gunner_01", "gunner_01"]
 const FALLBACK_CARD_ID: String = "shielder_01"
-const CARD_TRAY_HEIGHT: float = 220.0
-const CARD_TRAY_BOTTOM_MARGIN: float = 20.0
 
 # Core systems
 var _camera: Camera2D = null
 var _spawn_timer: Timer = null
 var _enemy_count: int = 0
 var _hero_scene: PackedScene = null
-var _card_scene: PackedScene = null
 
 # Hero templates: hero_id → Dictionary
 var _hero_templates: Dictionary = {}
@@ -36,15 +37,14 @@ var _hero_templates: Dictionary = {}
 # Grid tracking
 var _placed_heroes: Dictionary = {}  # Vector2i → Node2D
 
-# Card tray
-var _card_tray: HBoxContainer = null
+# Card tray manager (CardTrayManager class)
+var _card_tray_manager: CardTrayManager = null
 
-# Drag state
+# Drag state (visual-only; lifecycle is owned by CardUI)
 var _active_drag_card: Control = null
 var _ghost_sprite: Sprite2D = null
 var _highlight_grid_pos: Vector2i = Vector2i(-1, -1)
 var _highlight_valid: bool = false
-var _drag_world_pos: Vector2 = Vector2.ZERO
 
 
 # ============================================================
@@ -57,15 +57,13 @@ func _ready() -> void:
 	_setup_camera()
 	_load_scenes()
 	_load_hero_templates()
-	_create_card_tray()
 	_create_drag_visuals()
-	_connect_deck_signals()
+	_setup_card_tray_manager()
 	_connect_game_signals()
 	_start_enemy_wave()
 	_activate_deck_manager()
-	set_process_input(true)
 
-	print("[BattleTest] 初始化完毕 —— 从底部卡牌槽拖拽英雄到棋盘")
+	print("[BattleTest] 初始化完毕 —— Phase 8 卡牌拖拽部署系统已就绪")
 	print("[BattleTest] 等待卡牌补充...")
 
 
@@ -73,22 +71,15 @@ func _process(_delta: float) -> void:
 	if _active_drag_card == null:
 		return
 
-	_drag_world_pos = get_global_mouse_position()
-	_ghost_sprite.global_position = _drag_world_pos
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	_ghost_sprite.global_position = mouse_pos
 
-	var grid_pos: Vector2i = GridManager.get_logic_pos(_drag_world_pos)
+	var grid_pos: Vector2i = GridManager.get_logic_pos(mouse_pos)
 	_highlight_grid_pos = grid_pos
 	_highlight_valid = not _placed_heroes.has(grid_pos)
 
 	_ghost_sprite.self_modulate = Color.GREEN if _highlight_valid else Color.RED
 	queue_redraw()
-
-
-func _input(event: InputEvent) -> void:
-	if _active_drag_card == null:
-		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		_end_card_drag()
 
 
 # ============================================================
@@ -142,13 +133,9 @@ func _load_scenes() -> void:
 	if _hero_scene == null:
 		push_error("[BattleTest] 无法加载 Hero.tscn")
 
-	_card_scene = load(CARD_SCENE_PATH)
-	if _card_scene == null:
-		push_error("[BattleTest] 无法加载 CardUI.tscn")
-
 
 # ============================================================
-# 英雄模板 (所有模板, 按 hero_id 索引)
+# 英雄模板
 # ============================================================
 
 func _load_hero_templates() -> void:
@@ -172,34 +159,29 @@ func _load_hero_templates() -> void:
 
 
 # ============================================================
-# 卡牌托盘 (底部 HBoxContainer)
+# 卡牌托盘管理器 (CardTrayManager)
 # ============================================================
 
-func _create_card_tray() -> void:
-	_card_tray = HBoxContainer.new()
-	_card_tray.name = "CardTray"
-	_card_tray.layout_mode = 0
-	_card_tray.alignment = BoxContainer.ALIGNMENT_CENTER
-	_card_tray.add_theme_constant_override("separation", 8)
-	add_child(_card_tray)
-	_position_card_tray()
-	get_tree().root.size_changed.connect(_position_card_tray)
+func _setup_card_tray_manager() -> void:
+	_card_tray_manager = CardTrayManager.new()
+	_card_tray_manager.name = "CardTrayManager"
+	_card_tray_manager.card_created.connect(_on_card_created)
+	add_child(_card_tray_manager)
+
+	var card_scene: PackedScene = load(CARD_SCENE_PATH)
+	_card_tray_manager.setup(card_scene, _hero_templates)
+
+	print("[BattleTest] CardTrayManager 已初始化")
 
 
-func _position_card_tray() -> void:
-	if _card_tray == null:
-		return
-	var vp_size: Vector2 = get_viewport().get_visible_rect().size
-	var tray_width: float = minf(vp_size.x - 30.0, 820.0)
-	_card_tray.position = Vector2(
-		(vp_size.x - tray_width) / 2.0,
-		vp_size.y - CARD_TRAY_HEIGHT - CARD_TRAY_BOTTOM_MARGIN
-	)
-	_card_tray.size = Vector2(tray_width, CARD_TRAY_HEIGHT)
+func _on_card_created(card_ui: Control) -> void:
+	card_ui.drag_started.connect(_on_card_drag_started)
+	card_ui.drag_ended.connect(_on_card_drag_ended)
+	card_ui.drag_cancelled.connect(_on_card_drag_cancelled)
 
 
 # ============================================================
-# 拖拽视觉元素 (虚影 + 高亮)
+# 拖拽视觉元素 (虚影 + 网格高亮)
 # ============================================================
 
 func _create_drag_visuals() -> void:
@@ -216,7 +198,7 @@ func _draw() -> void:
 		return
 
 	var cell_center: Vector2 = GridManager.get_screen_pos(_highlight_grid_pos)
-	var half: Vector2 = Vector2(95, 95)  # half of REF_CELL_SIZE
+	var half: Vector2 = Vector2(95, 95)  # REF_CELL_SIZE / 2
 	var rect: Rect2 = Rect2(cell_center - half, half * 2)
 	var color: Color = Color.GREEN if _highlight_valid else Color.RED
 	color.a = 0.25
@@ -225,88 +207,70 @@ func _draw() -> void:
 
 
 # ============================================================
-# DeckManager 信号 — 卡牌补充
-# ============================================================
-
-func _connect_deck_signals() -> void:
-	if not DeckManager.card_drawn.is_connected(_on_card_drawn):
-		DeckManager.card_drawn.connect(_on_card_drawn)
-
-
-func _on_card_drawn(card_id: String) -> void:
-	if _card_scene == null:
-		push_error("[BattleTest] CardUI 场景未加载, 无法创建卡牌")
-		return
-
-	var template: Dictionary = _hero_templates.get(card_id, _hero_templates.get(FALLBACK_CARD_ID, {}))
-	var hero_name: String = template.get("name", card_id)
-
-	var card: Control = _card_scene.instantiate()
-	card.setup(card_id, hero_name)
-	card.drag_started.connect(_on_card_drag_started)
-	card.drag_ended.connect(_on_card_drag_ended)
-
-	_card_tray.add_child(card)
-	_animate_card_entrance(card)
-
-	print("[BattleTest] 卡牌入槽: %s (%s)" % [hero_name, card_id])
-
-
-func _animate_card_entrance(card: Control) -> void:
-	card.scale = Vector2.ZERO
-	var tween: Tween = create_tween()
-	tween.tween_property(card, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-
-# ============================================================
-# 卡牌拖拽信号
+# 卡牌拖拽信号 (CardUI → BattleTest)
 # ============================================================
 
 func _on_card_drag_started(card_ui: Control) -> void:
 	_active_drag_card = card_ui
 	_ghost_sprite.visible = true
-	print("[BattleTest] 拖拽开始: %s" % card_ui.hero_name)
 
 
-func _on_card_drag_ended(card_ui: Control) -> void:
-	# 备用路径: CardUI 暂不发射 drag_ended, 主路径为 _input → _end_card_drag
-	_end_card_drag()
+func _on_card_drag_ended(card_ui: Control, screen_pos: Vector2) -> void:
+	_ghost_sprite.visible = false
+	_highlight_grid_pos = Vector2i(-1, -1)
+	queue_redraw()
+
+	var vp_rect: Rect2 = get_viewport().get_visible_rect()
+
+	# Reject drops on the card tray area
+	var tray_top: float = vp_rect.size.y - CardTrayManager.TRAY_HEIGHT - CardTrayManager.TRAY_BOTTOM_MARGIN
+	if screen_pos.y > tray_top:
+		_cancel_deploy(card_ui)
+		return
+
+	# Reject drops outside viewport
+	if not vp_rect.has_point(screen_pos):
+		_cancel_deploy(card_ui)
+		return
+
+	# Coordinate alignment: hand area → grid logic → screen position
+	var grid_pos: Vector2i = GridManager.get_logic_pos(screen_pos)
+
+	# Reject drops on occupied cells
+	if _placed_heroes.has(grid_pos):
+		_cancel_deploy(card_ui)
+		return
+
+	# Deploy hero and consume card
+	_deploy_hero_from_card(grid_pos, card_ui)
+	_destroy_card(card_ui)
 
 
-func _end_card_drag() -> void:
-	var card: Control = _active_drag_card
+func _on_card_drag_cancelled(card_ui: Control) -> void:
 	_active_drag_card = null
 	_ghost_sprite.visible = false
 	_highlight_grid_pos = Vector2i(-1, -1)
 	queue_redraw()
 
-	if card == null:
-		return
 
-	var world_pos: Vector2 = _drag_world_pos
+func _cancel_deploy(card_ui: Control) -> void:
+	_active_drag_card = null
+	card_ui.cancel_drag()
 
-	var vp_rect: Rect2 = get_viewport().get_visible_rect()
-	if not vp_rect.has_point(world_pos):
-		print("[BattleTest] 拖放取消: 目标在视口外")
-		card.cancel_drag()
-		return
 
-	var grid_pos: Vector2i = GridManager.get_logic_pos(world_pos)
-
-	if _placed_heroes.has(grid_pos):
-		print("[BattleTest] 拖放取消: 格子 %s 已有英雄" % grid_pos)
-		card.cancel_drag()
-		return
-
-	_deploy_hero_from_card(grid_pos, card)
-
-	card.drag_started.disconnect(_on_card_drag_started)
-	card.drag_ended.disconnect(_on_card_drag_ended)
-	card.queue_free()
+func _destroy_card(card_ui: Control) -> void:
+	if card_ui.drag_started.is_connected(_on_card_drag_started):
+		card_ui.drag_started.disconnect(_on_card_drag_started)
+	if card_ui.drag_ended.is_connected(_on_card_drag_ended):
+		card_ui.drag_ended.disconnect(_on_card_drag_ended)
+	if card_ui.drag_cancelled.is_connected(_on_card_drag_cancelled):
+		card_ui.drag_cancelled.disconnect(_on_card_drag_cancelled)
+	card_ui.queue_free()
 	DeckManager.on_card_deployed()
+	_active_drag_card = null
 
 	print("[BattleTest] 卡牌消耗: %s, 手牌=%d, 场上=%d" % [
-		card.hero_name, DeckManager.hand_count, DeckManager.field_hero_count,
+		card_ui.hero_name, DeckManager.hand_count, DeckManager.field_hero_count,
 	])
 
 
@@ -323,6 +287,7 @@ func _deploy_hero_from_card(grid_pos: Vector2i, card_ui: Control) -> void:
 
 	var hero: Node2D = _hero_scene.instantiate()
 	hero.name = "Hero_%s" % card_ui.hero_name
+	# Coordinate: grid logic → screen pixel → hero world position
 	hero.global_position = GridManager.get_screen_pos(grid_pos)
 	hero.init_hero(template)
 
@@ -390,7 +355,6 @@ func _spawn_enemy() -> void:
 
 func _activate_deck_manager() -> void:
 	DeckManager.start_battle()
-	# 填充初始卡池
 	DeckManager.enqueue_cards(INITIAL_CARD_POOL)
 	print("[BattleTest] DeckManager 战斗状态已激活, 初始卡池 %d 张" % INITIAL_CARD_POOL.size())
 
@@ -413,7 +377,7 @@ func _on_enemy_died(pos: Vector2) -> void:
 
 func _print_header() -> void:
 	print("=")
-	print("  Phase 7 — 卡牌拖拽部署系统")
-	print("  从底部卡牌槽拖拽英雄到 5x5 棋盘部署")
+	print("  Phase 8 — 交互与手牌系统 (Card Tray System)")
+	print("  CardTrayManager + CardUI 自管理拖拽 + Ghost/Highlight")
 	print("  分辨率: 1080x2160 | stretch=canvas_items/expand")
 	print("=")
