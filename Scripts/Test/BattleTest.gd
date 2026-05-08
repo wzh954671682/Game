@@ -75,7 +75,7 @@ var _wall_spawn_blocked: bool = false
 
 # Scene-driven UI nodes (from BattleUI.tscn)
 var _battle_ui: CanvasLayer = null
-var _wall_node: ColorRect = null
+var _wall_node: TextureRect = null
 var _hp_bar_fill: ColorRect = null
 var _hp_fill_max_width: float = 0.0
 var _tray_anchor: ColorRect = null
@@ -231,7 +231,7 @@ func _load_battle_ui() -> void:
 	_battle_ui.name = "BattleUI"
 	add_child(_battle_ui)
 
-	_wall_node = _battle_ui.get_node_or_null("Wall") as ColorRect
+	_wall_node = _battle_ui.get_node_or_null("Wall") as TextureRect
 	_hp_bar_fill = _battle_ui.get_node_or_null("Wall/HPBarFill") as ColorRect
 	_tray_anchor = _battle_ui.get_node_or_null("CardTrayAnchor") as ColorRect
 
@@ -334,7 +334,7 @@ func _setup_wall_flash_timer() -> void:
 func _on_wall_flash_end() -> void:
 	_wall_flash_active = false
 	if _wall_node:
-		_wall_node.color = WALL_COLOR_DEAD if _wall_is_dead else WALL_COLOR_NORMAL
+		_wall_node.self_modulate = WALL_COLOR_DEAD if _wall_is_dead else Color.WHITE
 
 
 # ============================================================
@@ -498,7 +498,7 @@ func _on_wall_hit(damage: int) -> void:
 	_wall_flash_active = true
 	_wall_flash_timer.start()
 	if _wall_node:
-		_wall_node.color = WALL_COLOR_FLASH
+		_wall_node.self_modulate = WALL_COLOR_FLASH
 
 	# Smooth HP bar via tween (controls HPBarFill ColorRect)
 	if _wall_hp_tween and _wall_hp_tween.is_valid():
@@ -537,7 +537,7 @@ func _trigger_game_over() -> void:
 	_wall_spawn_blocked = true
 
 	if _wall_node:
-		_wall_node.color = WALL_COLOR_DEAD
+		_wall_node.self_modulate = WALL_COLOR_DEAD
 
 	if _spawn_timer:
 		_spawn_timer.stop()

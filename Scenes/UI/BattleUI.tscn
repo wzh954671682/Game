@@ -1,30 +1,33 @@
-[gd_scene load_steps=1 format=3]
+[gd_scene format=3 uid="uid://1axuf321pnip"]
 
-[node name="BattleUI" type="CanvasLayer"]
-layer = 1
+[ext_resource type="Texture2D" uid="uid://cono1ujblpfpp" path="res://Assets/UI/wall_001.png" id="1_wall_tex"]
 
-[node name="Wall" type="ColorRect" parent="."]
-offset_left = 130.0
-offset_top = 1844.0
-offset_right = 950.0
-offset_bottom = 1890.0
-color = Color(0.25, 0.35, 0.5, 0.92)
+[node name="BattleUI" type="CanvasLayer" unique_id=1678987044]
 
-[node name="HPBarBg" type="ColorRect" parent="Wall"]
-offset_left = 10.0
-offset_top = 6.0
-offset_right = 810.0
-offset_bottom = 20.0
+[node name="Wall" type="TextureRect" parent="." unique_id=1912305395]
+offset_top = 1701.0
+offset_right = 1077.6804
+offset_bottom = 1908.0
+texture = ExtResource("1_wall_tex")
+expand_mode = 1
+
+[node name="HPBarBg" type="ColorRect" parent="Wall" unique_id=2090602701]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 46.0
+offset_right = 955.0
+offset_bottom = 60.0
 color = Color(0.12, 0.12, 0.12, 0.85)
 
-[node name="HPBarFill" type="ColorRect" parent="Wall"]
-offset_left = 10.0
-offset_top = 6.0
-offset_right = 810.0
-offset_bottom = 20.0
+[node name="HPBarFill" type="ColorRect" parent="Wall" unique_id=2136088646]
+layout_mode = 0
+offset_left = 155.0
+offset_top = 46.0
+offset_right = 955.0
+offset_bottom = 60.0
 color = Color(0.2, 0.8, 0.3, 0.95)
 
-[node name="CardTrayAnchor" type="ColorRect" parent="."]
+[node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=943543237]
 offset_left = 130.0
 offset_top = 1920.0
 offset_right = 950.0
