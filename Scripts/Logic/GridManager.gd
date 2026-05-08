@@ -45,6 +45,10 @@ var _scene_wall_height: float = 0.0
 var _scene_tray_top: float = 0.0
 var _scene_tray_height: float = 0.0
 
+# CardStartMarker override (from BattleUI.tscn)
+var _card_start_pos: Vector2 = Vector2.ZERO
+var _has_card_start: bool = false
+
 
 func _ready() -> void:
 	_refresh_layout()
@@ -60,6 +64,23 @@ func set_grid_anchor_pos(pos: Vector2) -> void:
 	_has_grid_anchor = true
 	_refresh_layout()
 	print("[GridManager] GridAnchor 位置已注入: %s" % pos)
+
+
+func set_card_start_pos(pos: Vector2) -> void:
+	_card_start_pos = pos
+	_has_card_start = true
+	print("[GridManager] CardStartMarker 位置已注入: %s" % pos)
+
+
+func get_card_start_pos() -> Vector2:
+	if _has_card_start:
+		return _card_start_pos
+	# Fallback: 托盘左侧 + 半个卡宽
+	var tray_max_w: float = minf(float(REF_WIDTH) - 30.0, 820.0)
+	return Vector2(
+		(float(REF_WIDTH) - tray_max_w) / 2.0 + 75.0,
+		get_card_tray_top() + get_card_tray_height() / 2.0
+	)
 
 
 func apply_scene_layout(wall_rect: Rect2, tray_rect: Rect2) -> void:

@@ -256,6 +256,11 @@ func _load_battle_ui() -> void:
 		var anchor_center := _grid_anchor.global_position + _grid_anchor.size * 0.5
 		GridManager.set_grid_anchor_pos(anchor_center)
 
+		var card_marker: Control = _battle_ui.get_node_or_null("CardTrayAnchor/CardStartMarker") as Control
+		if card_marker:
+			var card_start := card_marker.global_position + card_marker.size * 0.5
+			GridManager.set_card_start_pos(card_start)
+
 	print("[BattleTest] BattleUI.tscn 已加载到 CanvasLayer")
 
 

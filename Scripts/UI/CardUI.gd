@@ -1,12 +1,14 @@
 extends Control
 
-## Self-contained draggable card. Owns its full drag lifecycle:
-## - _gui_input detects the initial press → starts drag, sets semi-transparent
-## - _input (enabled via set_process_input during drag) catches release/cancel globally
-## - Emits drag_started, drag_ended (with screen_pos), drag_cancelled
+## Self-contained draggable card with 3-state input FSM.
 ##
-## Phase 11 — 卡牌手感强化: 拖拽时 scale→1.1 + z_index=100 + 水平移动旋转反馈 ±5°
-## Phase 12 — 弃牌系统: 动态 [X] 按钮, DeckManager.discard_card + scale→0 销毁动画
+## States:
+##   IDLE     — resting in tray. Press+move>10px → DRAGGING. Press+release → SELECTED.
+##   SELECTED — click-to-inspect. Scale 1.5x, z_index high. Click outside → IDLE.
+##              Press+move>10px from SELECTED → DRAGGING.
+##   DRAGGING — follow mouse, rotation feedback ±5°. Release → deploy or cancel → IDLE.
+
+enum State { IDLE, SELECTED, DRAGGING }
 
 signal drag_started(card_ui: Control)
 signal drag_ended(card_ui: Control, screen_pos: Vector2)
@@ -15,14 +17,25 @@ signal drag_cancelled(card_ui: Control)
 var card_id: String = ""
 var hero_name: String = ""
 
-var _is_dragging: bool = false
+var _state: int = State.IDLE
+var _start_click_pos: Vector2 = Vector2.ZERO
+var _mouse_pressed: bool = false
 var _hover_tween: Tween = null
 var _prev_mouse_x: float = 0.0
 var _discard_btn: Button = null
 
+const DRAG_THRESHOLD: float = 10.0
+const SELECTED_SCALE: Vector2 = Vector2(1.5, 1.5)
+const DRAG_SCALE: Vector2 = Vector2(1.1, 1.1)
+
 
 func _ready() -> void:
 	_create_discard_button()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		pivot_offset = size / 2.0
 
 
 func _create_discard_button() -> void:
@@ -59,43 +72,49 @@ func setup(p_card_id: String, p_hero_name: String, p_icon: Texture2D = null) -> 
 		label.text = p_hero_name
 
 
+# ============================================================
+# 输入: 仅在卡牌自身区域响应 (_gui_input)
+# ============================================================
+
 func _gui_input(event: InputEvent) -> void:
-	if _is_dragging:
-		accept_event()
-		return
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			_start_click_pos = get_global_mouse_position()
+			_mouse_pressed = true
+			accept_event()
+			return
 
-	if not (event is InputEventMouseButton):
-		return
-	if event.button_index != MOUSE_BUTTON_LEFT:
-		return
-	if not event.pressed:
-		return
+		if event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			_mouse_pressed = false
+			match _state:
+				State.DRAGGING:
+					_complete_drag(get_global_mouse_position())
+				State.IDLE:
+					_enter_selected()
+			accept_event()
+			return
 
-	_is_dragging = true
-	_prev_mouse_x = get_global_mouse_position().x
-	rotation_degrees = 0.0
-	modulate = Color(1.0, 1.0, 1.0, 0.35)
-	set_process_input(true)
+	elif event is InputEventMouseMotion and _mouse_pressed:
+		var dist: float = get_global_mouse_position().distance_to(_start_click_pos)
+		if dist >= DRAG_THRESHOLD and _state != State.DRAGGING:
+			_enter_dragging()
+			accept_event()
+			return
 
-	# 悬浮强化: scale → 1.1, z_index → 100
-	if _hover_tween and _hover_tween.is_valid():
-		_hover_tween.kill()
-	_hover_tween = create_tween()
-	_hover_tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.12)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	z_index = 100
 
-	if _discard_btn:
-		_discard_btn.visible = true
-
-	drag_started.emit(self)
-	accept_event()
-
+# ============================================================
+# 全局输入: DRAGGING 时捕获释放/取消 + SELECTED 时检测外部点击
+# ============================================================
 
 func _input(event: InputEvent) -> void:
-	if not _is_dragging:
-		return
+	match _state:
+		State.DRAGGING:
+			_input_dragging(event)
+		State.SELECTED:
+			_input_selected(event)
 
+
+func _input_dragging(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
 		_complete_drag(get_global_mouse_position())
 		accept_event()
@@ -106,57 +125,126 @@ func _input(event: InputEvent) -> void:
 		cancel_drag()
 		accept_event()
 	elif event is InputEventMouseMotion:
-		# 拖拽旋转反馈: 水平增量 → lerp 限制 ±5°
 		var mm: InputEventMouseMotion = event as InputEventMouseMotion
 		var target: float = clampf(mm.relative.x * 0.3, -5.0, 5.0)
 		rotation_degrees = lerpf(rotation_degrees, target, 0.35)
 
 
-func _complete_drag(release_pos: Vector2) -> void:
-	_end_drag_state()
-	drag_ended.emit(self, release_pos)
+func _input_selected(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		if not get_global_rect().has_point(get_global_mouse_position()):
+			_exit_selected()
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			_start_click_pos = get_global_mouse_position()
+			_mouse_pressed = true
 
 
-func cancel_drag() -> void:
-	if not _is_dragging:
-		return
-	_end_drag_state()
-	drag_cancelled.emit(self)
+# ============================================================
+# 状态切换
+# ============================================================
+
+func _enter_selected() -> void:
+	_state = State.SELECTED
+	set_process_input(true)
+
+	_kill_hover_tween()
+	_hover_tween = create_tween()
+	_hover_tween.tween_property(self, "scale", SELECTED_SCALE, 0.18)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	z_index = 200
+
+	if _discard_btn:
+		_discard_btn.visible = true
+
+	_notify_tray(true)
 
 
-func _end_drag_state() -> void:
-	_is_dragging = false
+func _exit_selected() -> void:
+	_enter_idle()
+
+
+func _enter_dragging() -> void:
+	var was_selected: bool = _state == State.SELECTED
+	_state = State.DRAGGING
+	set_process_input(true)
+
+	_prev_mouse_x = get_global_mouse_position().x
+	rotation_degrees = 0.0
+	modulate = Color(1.0, 1.0, 1.0, 0.35)
+
+	_kill_hover_tween()
+	_hover_tween = create_tween()
+	_hover_tween.tween_property(self, "scale", DRAG_SCALE, 0.12)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	z_index = 100
+
+	if _discard_btn:
+		_discard_btn.visible = true
+
+	_notify_tray(false)
+	drag_started.emit(self)
+
+
+func _enter_idle() -> void:
+	_state = State.IDLE
+	_mouse_pressed = false
 	modulate = Color.WHITE
 	rotation_degrees = 0.0
 	set_process_input(false)
 
-	# 还原 scale 与 z_index
-	if _hover_tween and _hover_tween.is_valid():
-		_hover_tween.kill()
+	_kill_hover_tween()
 	_hover_tween = create_tween()
-	_hover_tween.tween_property(self, "scale", Vector2.ONE, 0.12)\
+	_hover_tween.tween_property(self, "scale", Vector2.ONE, 0.18)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	z_index = 0
 
 	if _discard_btn:
 		_discard_btn.visible = false
 
+	_notify_tray(false)
+
 
 # ============================================================
-# Task 2 — 弃牌系统
+# 通知手牌管理器更新避让布局
+# ============================================================
+
+func _notify_tray(is_selected: bool) -> void:
+	var p := get_parent()
+	if p and p is CardTrayManager:
+		(p as CardTrayManager).update_hand_layout(get_index() if is_selected else -1)
+
+
+# ============================================================
+# 拖拽生命周期
+# ============================================================
+
+func _complete_drag(release_pos: Vector2) -> void:
+	_enter_idle()
+	drag_ended.emit(self, release_pos)
+
+
+func cancel_drag() -> void:
+	if _state != State.DRAGGING:
+		return
+	_enter_idle()
+	drag_cancelled.emit(self)
+
+
+# ============================================================
+# 弃牌系统
 # ============================================================
 
 func _on_discard_pressed() -> void:
-	# 终止拖拽状态, 通知 BattleTest 释放引用
-	if _is_dragging:
-		_is_dragging = false
-		modulate = Color.WHITE
-		rotation_degrees = 0.0
-		set_process_input(false)
-		z_index = 0
+	_mouse_pressed = false
+	modulate = Color.WHITE
+	rotation_degrees = 0.0
+	set_process_input(false)
+	z_index = 0
+	_state = State.IDLE
+
+	if not drag_cancelled.get_connections().is_empty():
 		drag_cancelled.emit(self)
 
-	# 断连所有外部信号
 	for conn in drag_started.get_connections():
 		drag_started.disconnect(conn.callable)
 	for conn in drag_ended.get_connections():
@@ -166,11 +254,18 @@ func _on_discard_pressed() -> void:
 
 	DeckManager.discard_card(card_id)
 
-	if _hover_tween and _hover_tween.is_valid():
-		_hover_tween.kill()
+	_kill_hover_tween()
 
-	# 销毁动画: scale → 0, 0.2s → queue_free
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ZERO, 0.2)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	tween.finished.connect(queue_free)
+
+
+# ============================================================
+# 辅助
+# ============================================================
+
+func _kill_hover_tween() -> void:
+	if _hover_tween and _hover_tween.is_valid():
+		_hover_tween.kill()
