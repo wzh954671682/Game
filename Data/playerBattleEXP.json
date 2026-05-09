@@ -1,0 +1,14 @@
+{
+  "levels": [
+    { "level": 1,  "exp_required": 100,  "card_reward_count": 1 },
+    { "level": 2,  "exp_required": 250,  "card_reward_count": 1 },
+    { "level": 3,  "exp_required": 500,  "card_reward_count": 1 },
+    { "level": 4,  "exp_required": 850,  "card_reward_count": 2 },
+    { "level": 5,  "exp_required": 1300, "card_reward_count": 2 },
+    { "level": 6,  "exp_required": 1900, "card_reward_count": 2 },
+    { "level": 7,  "exp_required": 2700, "card_reward_count": 3 },
+    { "level": 8,  "exp_required": 3800, "card_reward_count": 3 },
+    { "level": 9,  "exp_required": 5200, "card_reward_count": 3 },
+    { "level": 10, "exp_required": 7000, "card_reward_count": 4 }
+  ]
+}

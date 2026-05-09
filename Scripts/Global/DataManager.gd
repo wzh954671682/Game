@@ -11,6 +11,7 @@ var wall_config: Dictionary = {}
 var rarity_config: Dictionary = {}
 var card_display_config: Dictionary = {}
 var heroes_progression: Dictionary = {}
+var player_battle_exp: Dictionary = {}
 
 const MONSTER_TEMPLATES_PATH: String = "res://Data/monster_templates.json"
 const STAGE_CONFIG_PATH: String = "res://Data/level_stage_config.json"
@@ -18,6 +19,7 @@ const WALL_CONFIG_PATH: String = "res://Data/wall_config.json"
 const RARITY_CONFIG_PATH: String = "res://Data/rarity_config.json"
 const CARD_DISPLAY_CONFIG_PATH: String = "res://Data/card_display_config.json"
 const HEROES_PROGRESSION_PATH: String = "res://Data/heroes_progression.json"
+const PLAYER_BATTLE_EXP_PATH: String = "res://Data/playerBattleEXP.json"
 
 
 func _ready() -> void:
@@ -28,6 +30,7 @@ func _ready() -> void:
 	rarity_config = load_json(RARITY_CONFIG_PATH)
 	card_display_config = load_json(CARD_DISPLAY_CONFIG_PATH)
 	heroes_progression = load_json(HEROES_PROGRESSION_PATH)
+	player_battle_exp = load_json(PLAYER_BATTLE_EXP_PATH)
 
 
 func load_json(file_path: String) -> Dictionary:

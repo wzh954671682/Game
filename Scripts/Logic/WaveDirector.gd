@@ -107,9 +107,12 @@ func _spawn(entry: Dictionary) -> void:
 
 	enemy.set("monster_id", monster_id.trim_prefix("monster_"))
 	enemy.set("move_speed", template.get("base_speed", 100.0))
-	enemy.set("max_health", int(template.get("base_hp", 100) * hp_mult))
+	var final_hp: int = int(template.get("base_hp", 100) * hp_mult)
+	enemy.set("max_health", final_hp)
+	enemy.set("current_hp", final_hp)
 	enemy.set("wall_damage", template.get("base_wall_damage", 1))
 	enemy.set("attack_damage", template.get("base_attack_damage", 5))
+	enemy.set("exp_reward", template.get("exp_reward", 0))
 
 	var spawn_logic: Vector2i = Vector2i(lane, 0)
 	var screen_pos: Vector2 = GridManager.get_screen_pos(spawn_logic)
@@ -124,7 +127,7 @@ func _spawn(entry: Dictionary) -> void:
 	])
 
 
-func _on_enemy_died(_pos: Vector2) -> void:
+func _on_enemy_died(_pos: Vector2, _exp: int) -> void:
 	_alive_enemy_count = maxi(_alive_enemy_count - 1, 0)
 	_check_victory()
 

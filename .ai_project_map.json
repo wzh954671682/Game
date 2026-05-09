@@ -74,7 +74,8 @@
       "c": { "max_hand": 5, "rescue_cd": 10, "draw_interval": 0.1, "scan_interval": 1.0, "init_silence": 5.0 },
       "m": ["start_battle"]
     },
-    "Scripts/UI/BattleUI.gd": { "ext": "CanvasLayer" },
+    "Scripts/UI/BattleUI.gd": { "ext": "CanvasLayer", "m": ["update_exp", "update_battle_level", "_on_pause_pressed"], "exp": ["_medal_bg", "_battle_level_label", "_exp_progress_bar", "_exp_label", "_pause_button", "_pause_panel"], "note": "TopWrapper子节点引用+暂停面板加载" },
+    "Scripts/UI/PausePanel.gd": { "ext": "CanvasLayer", "m": ["show_pause", "_on_continue_pressed", "_on_home_pressed"], "note": "暂停弹窗: 遮罩+继续(取消暂停)+首页(预留)" },
     "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
     "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup_card", "setup"], "z": { "idle": 0, "dragging": 10, "selected": 10 }, "note": "数据驱动: setup_card()→rarity_config+card_display_config→动态加载CardBG/Icon/Label" },
     "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
@@ -100,7 +101,8 @@
     "Scenes/Hero.tscn": { "s": "Scripts/Entities/Hero.gd", "root": "Node2D", "ch": ["Sprite2D", "RayCast2D"] },
     "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D", "HPBarRed", "HPBar"] },
     "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["CardBG(TextureRect)", "Icon", "Label"], "note": "Panel→CardBG: 动态加载rarity底图" },
-    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"], "tiles": "Tile_1..Tile_25 Sprite2D under GridAnchor (runtime-reparented to Node2D)" },
+    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["TopWrapper(HBoxContainer)", "Wall", "GridAnchor", "CardTrayAnchor(NinePatchRect)", "HandContainer", "RescueBanner", "DeckCountLabel"], "tiles": "Tile_1..Tile_25 under GridAnchor", "top_hud": "TopWrapper→RankNode(MedalBG+BattleLevel)+ExpBarNode(ExpProgressBar+ExpLabel)+PauseButton" },
+    "Scenes/UI/PausePanel.tscn": { "s": "Scripts/UI/PausePanel.gd", "root": "CanvasLayer", "layer": 100, "ch": ["Background(ColorRect)", "ContentVBox(VBoxContainer)", "TitleLabel", "ButtonHBox(HBoxContainer)", "BtnHome", "BtnContinue"], "note": "半透明遮罩+居中内容, BtnContinue=取消暂停" },
     "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "Container Dominance: 容器子节点全用layout_mode=2+size_flags, 无anchor/offset残留" },
     "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "结构100%对齐VictoryPanel, 仅text='失败'+defeat_color" }
   },
@@ -132,7 +134,8 @@
     "monster_templates": "Data/monster_templates.json",
     "level_stage_config": "Data/level_stage_config.json",
     "rarity_config": "Data/rarity_config.json",
-    "card_display_config": "Data/card_display_config.json"
+    "card_display_config": "Data/card_display_config.json",
+    "playerBattleEXP": "Data/playerBattleEXP.json"
   },
   "flow": {
     "intercept": "Hero.try_intercept→RayCast2D→Enemy.set_paused(true)→both_ATTACK→Hero.frame2_deal_dmg; Enemy.attack_hit_signal→Hero.take_damage",

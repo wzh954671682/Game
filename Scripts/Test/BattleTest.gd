@@ -75,6 +75,11 @@ var _wall_hp_tween: Tween = null
 var _wall_flash_timer: Timer = null
 var _wall_spawn_blocked: bool = false
 
+# Player EXP state
+var _player_level: int = 1
+var _player_current_exp: int = 0
+var _player_needed_exp: int = 100
+
 # Scene-driven UI nodes (from BattleUI.tscn)
 var _battle_ui: CanvasLayer = null
 var _wall_node: TextureRect = null
@@ -94,6 +99,7 @@ func _ready() -> void:
 	_wall_max_hp = DataManager.wall_config.get("base_hp", 50)
 	_wall_current_hp = _wall_max_hp
 	_wall_displayed_hp = float(_wall_max_hp)
+	_init_player_exp()
 	_print_header()
 	_validate_all_autoloads()
 	_setup_camera()
@@ -653,8 +659,35 @@ func _activate_deck_manager() -> void:
 # 信号回调
 # ============================================================
 
-func _on_enemy_died(_pos: Vector2) -> void:
-	pass
+func _on_enemy_died(_pos: Vector2, exp_reward: int) -> void:
+	if exp_reward > 0:
+		_add_exp(exp_reward)
+
+
+func _init_player_exp() -> void:
+	var levels: Array = DataManager.player_battle_exp.get("levels", [])
+	if levels.size() > 0:
+		_player_needed_exp = levels[0].get("exp_required", 100)
+
+
+func _add_exp(amount: int) -> void:
+	_player_current_exp += amount
+	while _player_current_exp >= _player_needed_exp:
+		_player_current_exp -= _player_needed_exp
+		_player_level += 1
+		_player_needed_exp = _get_needed_exp(_player_level)
+	if _battle_ui and _battle_ui.has_method("update_exp"):
+		_battle_ui.update_exp(_player_current_exp, _player_needed_exp)
+	if _battle_ui and _battle_ui.has_method("update_battle_level"):
+		_battle_ui.update_battle_level(_player_level)
+
+
+func _get_needed_exp(level: int) -> int:
+	var levels: Array = DataManager.player_battle_exp.get("levels", [])
+	for entry in levels:
+		if entry is Dictionary and entry.get("level", 0) == level:
+			return entry.get("exp_required", _player_needed_exp)
+	return _player_needed_exp
 
 
 func _on_stage_victory(stage_id: String) -> void:

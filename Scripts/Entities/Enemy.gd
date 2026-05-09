@@ -17,6 +17,7 @@ signal attack_hit(damage: int)
 @export var frame_interval: float = 0.1
 @export var is_elite: bool = false
 @export var is_boss: bool = false
+@export var exp_reward: int = 0
 
 var current_hp: int = max_health
 var _is_paused: bool = false
@@ -96,7 +97,7 @@ func _physics_process(delta: float) -> void:
 		global_position.y += move_speed * delta
 		if global_position.y > _bottom_boundary():
 			GameEvents.wall_hit.emit(wall_damage)
-			GameEvents.enemy_died.emit(global_position)
+			GameEvents.enemy_died.emit(global_position, 0)
 			queue_free()
 
 	_update_animation(delta)
@@ -197,7 +198,7 @@ func _die() -> void:
 	monitoring = false
 	monitorable = false
 
-	GameEvents.enemy_died.emit(global_position)
+	GameEvents.enemy_died.emit(global_position, exp_reward)
 	_apply_state(State.DEATH)
 
 	# 死亡视觉增强: 缩放缩小 + 轻微上漂

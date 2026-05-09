@@ -3,6 +3,10 @@
 [ext_resource type="Texture2D" uid="uid://cono1ujblpfpp" path="res://Assets/UI/wall_001.png" id="1_wall_tex"]
 [ext_resource type="Script" uid="uid://b3jpgdg68iq0p" path="res://Scripts/UI/BattleUI.gd" id="2_battle_ui_script"]
 [ext_resource type="Texture2D" uid="uid://b21bk1n1lhory" path="res://Assets/UI/common/kapaiBG.png" id="3_tray_tex"]
+[ext_resource type="Texture2D" uid="uid://bjheflkef5yej" path="res://Assets/UI/common/xunzhangBG.png" id="4_xunzhang_tex"]
+[ext_resource type="Texture2D" uid="uid://dee3dooa10vrp" path="res://Assets/UI/common/jindutiao_down.png" id="5_bar_down_tex"]
+[ext_resource type="Texture2D" uid="uid://igmmb62h66jm" path="res://Assets/UI/common/jindutiao_up.png" id="6_bar_up_tex"]
+[ext_resource type="Texture2D" uid="uid://dgo0asif1jhqw" path="res://Assets/UI/common/zhantingBTN.png" id="7_pause_tex"]
 
 [node name="BattleUI" type="CanvasLayer" unique_id=738200246]
 script = ExtResource("2_battle_ui_script")
@@ -211,3 +215,75 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 2
 vertical_alignment = 1
+
+[node name="TopWrapper" type="Control" parent="." unique_id=189929998]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 158.0
+grow_horizontal = 2
+
+[node name="RankNode" type="Control" parent="TopWrapper" unique_id=298243726]
+custom_minimum_size = Vector2(150, 150)
+anchors_preset = 0
+offset_left = 30.0
+offset_top = 26.0
+offset_right = 180.0
+offset_bottom = 176.0
+
+[node name="MedalBG" type="TextureRect" parent="TopWrapper/RankNode" unique_id=543365487]
+layout_mode = 0
+offset_right = 130.0
+offset_bottom = 130.0
+mouse_filter = 2
+texture = ExtResource("4_xunzhang_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BattleLevel" type="Label" parent="TopWrapper/RankNode" unique_id=2120890760]
+layout_mode = 0
+offset_left = 21.0
+offset_top = 32.0
+offset_right = 103.0
+offset_bottom = 90.0
+theme_override_font_sizes/font_size = 42
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExpBarNode" type="Control" parent="TopWrapper" unique_id=1740823216]
+anchors_preset = 0
+offset_left = 170.0
+offset_top = 36.0
+offset_right = 170.0
+offset_bottom = 36.0
+
+[node name="ExpProgressBar" type="TextureProgressBar" parent="TopWrapper/ExpBarNode" unique_id=1362895313]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 7136.0
+offset_bottom = 698.0
+scale = Vector2(0.1, 0.1)
+texture_under = ExtResource("5_bar_down_tex")
+texture_progress = ExtResource("6_bar_up_tex")
+
+[node name="ExpLabel" type="Label" parent="TopWrapper/ExpBarNode" unique_id=1602102629]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 22.0
+offset_right = 616.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 42
+text = "0/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PauseButton" type="Button" parent="TopWrapper" unique_id=1507561384]
+layout_mode = 0
+offset_left = 929.0
+offset_top = 20.0
+offset_right = 1067.0
+offset_bottom = 158.0
+icon = ExtResource("7_pause_tex")
+flat = true

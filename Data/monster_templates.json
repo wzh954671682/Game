@@ -4,7 +4,8 @@
       "base_hp": 100,
       "base_speed": 100.0,
       "base_wall_damage": 1,
-      "base_attack_damage": 5
+      "base_attack_damage": 5,
+      "exp_reward": 70
     }
   }
 }
