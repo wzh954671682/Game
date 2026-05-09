@@ -28,7 +28,7 @@ const LAYOUT_POSITION: int = 0
 const LAYOUT_ANCHORS: int = 1
 
 # === Wall state ===
-const WALL_MAX_HP: int = 3
+const WALL_MAX_HP: int = 50
 const WALL_FLASH_SEC: float = 0.15
 const WALL_HP_TWEEN_SEC: float = 0.25
 

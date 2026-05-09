@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Scripts/UI/SettlementPanel.gd" id="1_script"]
 [ext_resource type="Script" path="res://Scripts/UI/SafeAreaContainer.gd" id="2_safearea"]
+[ext_resource type="Texture2D" path="res://Assets/UI/battleEND/end_bg.png" id="3_bg_tex"]
 
 [node name="DefeatPanel" type="CanvasLayer"]
 process_mode = 3
@@ -17,50 +18,81 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_safearea")
 
-[node name="Panel" type="Panel" parent="SafeAreaContainer"]
+[node name="Wrapper" type="Control" parent="SafeAreaContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -210.0
-offset_right = 300.0
-offset_bottom = 210.0
+offset_left = -375.0
+offset_top = -500.0
+offset_right = 375.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
-custom_minimum_size = Vector2(600, 420)
+texture = ExtResource("3_bg_tex")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SafeAreaContainer/Panel"]
+[node name="Label_Status" type="Label" parent="SafeAreaContainer/Wrapper/Background"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 130.0
 grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 24
-
-[node name="Label_Status" type="Label" parent="SafeAreaContainer/Panel/VBoxContainer"]
-layout_mode = 2
 text = "失败"
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 64
-theme_override_constants/outline_size = 5
 theme_override_colors/font_color = Color(0.85, 0.15, 0.1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_constants/shadow_outline_size = 8
+theme_override_font_sizes/font_size = 120
 
-[node name="RewardContainer" type="HBoxContainer" parent="SafeAreaContainer/Panel/VBoxContainer"]
-layout_mode = 2
+[node name="RewardContainer" type="VBoxContainer" parent="SafeAreaContainer/Wrapper/Background"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 200
 alignment = 1
-theme_override_constants/separation = 8
 
-[node name="Btn_Action" type="Button" parent="SafeAreaContainer/Panel/VBoxContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(240, 64)
-text = "返回首页"
+[node name="Btn_Action" type="Button" parent="SafeAreaContainer/Wrapper/Background"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 0
+custom_minimum_size = Vector2(240, 80)
+flat = true
 theme_override_font_sizes/font_size = 36
+
+[node name="text" type="Label" parent="SafeAreaContainer/Wrapper/Background/Btn_Action"]
+layout_mode = 2
+text = "返回首页"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_constants/shadow_outline_size = 8
+theme_override_font_sizes/font_size = 70
