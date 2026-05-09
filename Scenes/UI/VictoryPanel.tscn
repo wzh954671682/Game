@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c8dnc53pukrhi" path="res://Scripts/UI/SafeAreaContainer.gd" id="2_safearea"]
 [ext_resource type="Texture2D" uid="uid://dyvkiu52i3d8s" path="res://Assets/UI/battleEND/end_bg.png" id="3_bg_tex"]
 [ext_resource type="Texture2D" uid="uid://cr8c1o38jchld" path="res://Assets/UI/btn/btn_01.png" id="4_btn_tex"]
+[ext_resource type="Texture2D" uid="uid://dbda20so1tjv8" path="res://Assets/UI/battleEND/mask.png" id="4_wgjfi"]
 [ext_resource type="Script" uid="uid://cdbdt1xdxdk4j" path="res://Scripts/UI/WrapperMonitor.gd" id="5_wrapper_monitor"]
 
 [node name="VictoryPanel" type="CanvasLayer" unique_id=1455121630]
@@ -25,6 +26,12 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("5_wrapper_monitor")
+
+[node name="TextureRect" type="TextureRect" parent="SafeAreaContainer/Wrapper" unique_id=1957002312]
+layout_mode = 0
+offset_right = 1080.0
+offset_bottom = 2160.0
+texture = ExtResource("4_wgjfi")
 
 [node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper" unique_id=221399623]
 layout_mode = 1

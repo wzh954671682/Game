@@ -1,17 +1,18 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c1yjnaxiir1on"]
 
-[ext_resource type="Script" path="res://Scripts/UI/SettlementPanel.gd" id="1_script"]
-[ext_resource type="Script" path="res://Scripts/UI/SafeAreaContainer.gd" id="2_safearea"]
-[ext_resource type="Texture2D" path="res://Assets/UI/battleEND/end_bg.png" id="3_bg_tex"]
-[ext_resource type="Texture2D" path="res://Assets/UI/btn/btn_01.png" id="4_btn_tex"]
-[ext_resource type="Script" path="res://Scripts/UI/WrapperMonitor.gd" id="5_wrapper_monitor"]
+[ext_resource type="Script" uid="uid://ca7rul1ms3dab" path="res://Scripts/UI/SettlementPanel.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://c8dnc53pukrhi" path="res://Scripts/UI/SafeAreaContainer.gd" id="2_safearea"]
+[ext_resource type="Texture2D" uid="uid://dyvkiu52i3d8s" path="res://Assets/UI/battleEND/end_bg.png" id="3_bg_tex"]
+[ext_resource type="Texture2D" uid="uid://dbda20so1tjv8" path="res://Assets/UI/battleEND/mask.png" id="3_uxvwx"]
+[ext_resource type="Texture2D" uid="uid://cr8c1o38jchld" path="res://Assets/UI/btn/btn_01.png" id="4_btn_tex"]
+[ext_resource type="Script" uid="uid://cdbdt1xdxdk4j" path="res://Scripts/UI/WrapperMonitor.gd" id="5_wrapper_monitor"]
 
-[node name="DefeatPanel" type="CanvasLayer"]
+[node name="DefeatPanel" type="CanvasLayer" unique_id=1760087914]
 process_mode = 3
 layer = 10
 script = ExtResource("1_script")
 
-[node name="SafeAreaContainer" type="MarginContainer" parent="."]
+[node name="SafeAreaContainer" type="MarginContainer" parent="." unique_id=1383360969]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,14 +20,18 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_safearea")
 
-[node name="Wrapper" type="Control" parent="SafeAreaContainer"]
+[node name="TextureRect" type="TextureRect" parent="SafeAreaContainer" unique_id=1941644956]
+layout_mode = 2
+texture = ExtResource("3_uxvwx")
+
+[node name="Wrapper" type="Control" parent="SafeAreaContainer" unique_id=1672264687]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("5_wrapper_monitor")
 
-[node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper"]
+[node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper" unique_id=866878562]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -41,7 +46,7 @@ texture = ExtResource("3_bg_tex")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label_Status" type="Label" parent="SafeAreaContainer/Wrapper/Background"]
+[node name="Label_Status" type="Label" parent="SafeAreaContainer/Wrapper/Background" unique_id=1755465377]
 layout_mode = 0
 offset_left = 422.0
 offset_top = 343.0
@@ -56,7 +61,7 @@ text = "失败"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RewardContainer" type="VBoxContainer" parent="SafeAreaContainer/Wrapper/Background"]
+[node name="RewardContainer" type="VBoxContainer" parent="SafeAreaContainer/Wrapper/Background" unique_id=900517291]
 layout_mode = 0
 offset_left = 101.0
 offset_top = 537.0
@@ -67,7 +72,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 200
 alignment = 1
 
-[node name="Btn_Action" type="Button" parent="SafeAreaContainer/Wrapper/Background"]
+[node name="Btn_Action" type="Button" parent="SafeAreaContainer/Wrapper/Background" unique_id=1420751531]
 custom_minimum_size = Vector2(240, 80)
 layout_mode = 0
 offset_left = 321.0
@@ -78,7 +83,7 @@ theme_override_font_sizes/font_size = 36
 icon = ExtResource("4_btn_tex")
 flat = true
 
-[node name="text" type="Label" parent="SafeAreaContainer/Wrapper/Background/Btn_Action"]
+[node name="text" type="Label" parent="SafeAreaContainer/Wrapper/Background/Btn_Action" unique_id=387702164]
 layout_mode = 0
 offset_left = 83.0
 offset_top = 13.0
