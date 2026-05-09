@@ -44,7 +44,7 @@ func _create_discard_button() -> void:
 	btn.name = "DiscardBtn"
 	btn.text = "[X]"
 	btn.visible = false
-	btn.layout_mode = 1
+	btn.layout_mode = 1  # LAYOUT_MODE_ANCHORS (Godot 4.6: LayoutMode enum not exposed as named constant)
 	btn.anchor_left = 0.5
 	btn.anchor_right = 0.5
 	btn.anchor_top = 1.0
@@ -165,7 +165,6 @@ func _exit_selected() -> void:
 
 
 func _enter_dragging() -> void:
-	var was_selected: bool = _state == State.SELECTED
 	_state = State.DRAGGING
 	set_process_input(true)
 

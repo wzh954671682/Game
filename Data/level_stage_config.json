@@ -11,7 +11,11 @@
         {"spawn_time": 15.0, "monster_id": "monster_01", "lane": 2, "hp_multiplier": 1.5},
         {"spawn_time": 18.0, "monster_id": "monster_01", "lane": 0, "hp_multiplier": 2.0},
         {"spawn_time": 21.0, "monster_id": "monster_01", "lane": 4, "hp_multiplier": 2.0}
-      ]
+      ],
+      "rewards": {
+        "victory": { "coin": 100, "shard": 2, "shard_id": "001" },
+        "defeat": { "coin": 20 }
+      }
     }
   }
 }

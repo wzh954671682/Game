@@ -27,25 +27,27 @@
       "fsm": ["STANDBY", "ATTACK", "DEATH"],
       "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval"],
       "sig": [],
-      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused"],
+      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats"],
       "stars": { "max": 5, "mult": [1.0, 1.5, 2.2, 3.0, 4.5], "scale": 0.1, "heal": 0.2 },
-      "z": { "default": 0 }
+      "z": { "default": 0 },
+      "note": "Phase15.5: get_final_stats(stat)→(base+meta)*(1+star_bonus)*(1+buff_bonus)"
     },
     "Scripts/Entities/Enemy.gd": {
       "ext": "Area2D",
       "fsm": ["MOVE", "ATTACK", "DEATH"],
-      "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval"],
+      "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval", "is_elite", "is_boss"],
       "sig": ["attack_hit"],
-      "m": ["take_damage", "set_paused"],
-      "z": { "default": 0 }
+      "m": ["take_damage", "set_paused", "_setup_hp_bars"],
+      "z": { "default": 0 },
+      "note": "Phase15.5: 双层残影HPBar(HPBar+HPBarRed), elite/boss可见, take_damage瞬扣+Tween0.4s追平"
     },
     "Scripts/Global/GameEvents.gd": {
       "ext": "Node",
       "sig": ["wall_hit", "enemy_died", "card_deployed", "deadlock_rescue_triggered", "wall_hp_changed", "game_over", "stage_victory"]
     },
     "Scripts/Global/DataManager.gd": { "ext": "Node", "m": ["load_json"], "exp": ["error_messages", "monster_templates", "stage_config"] },
-    "Scripts/Global/SaveManager.gd": { "ext": "Node", "m": ["save_game", "load_game"] },
-    "Scripts/Global/VFXManager.gd": { "ext": "Node", "m": ["hit_stop"], "note": "PROCESS_MODE_ALWAYS", "z": { "damage_text": 20, "damage_canvas_layer": 100 } },
+    "Scripts/Global/SaveManager.gd": { "ext": "Node", "m": ["save_game", "load_game"], "exp": ["save_data(gold/shards/max_level/unlocked_cards)"] },
+    "Scripts/Global/VFXManager.gd": { "ext": "Node", "m": ["hit_stop", "show_damage_text"], "note": "PROCESS_MODE_ALWAYS; Phase15.5: is_crit参数(黄字/1.5x字号/弹性缩放), 防堆叠(POPUP_MAX=15, >5屏偏移)", "z": { "damage_text": 20, "damage_canvas_layer": 100 } },
     "Scripts/Logic/GridManager.gd": {
       "ext": "Node",
       "m": ["get_screen_pos", "get_logic_pos", "get_wall_boundary", "get_card_tray_top", "apply_scene_layout", "set_grid_anchor_pos", "get_grid_center", "setup_map", "load_battle_map", "load_map_async", "get_tile_node", "get_tile_for_grid_pos"],
@@ -53,8 +55,10 @@
     },
     "Scripts/Managers/BattleManager.gd": {
       "ext": "Node",
-      "m": ["apply_displacement", "register_entity", "unregister_entity"],
-      "c": { "max_recurse": 5, "tween_dur": 0.25 }
+      "m": ["apply_displacement", "register_entity", "unregister_entity", "get_hero_at", "_on_displacement_finished", "show_settlement"],
+      "c": { "max_recurse": 5, "tween_dur": 0.25 },
+      "exp": ["current_stage_id"],
+      "note": "Phase16: show_settlement→load .tscn→setup→动画→tween.finished→time_scale=0"
     },
     "Scripts/Logic/WaveDirector.gd": {
       "ext": "Node",
@@ -74,21 +78,30 @@
     "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
     "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup"], "z": { "idle": 0, "dragging": 10, "selected": 10 } },
     "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
+    "Scripts/UI/SettlementPanel.gd": {
+      "ext": "CanvasLayer",
+      "m": ["setup", "_play_entrance_animation", "_create_reward_icons", "_save_rewards", "_on_btn_action_pressed"],
+      "exp": ["panel_width", "panel_height", "status_font_size", "reward_font_size", "button_font_size", "icon_size", "icon_spacing", "icon_bounce_delay", "entrance_duration", "icon_bounce_duration", "initial_delay", "victory_color", "defeat_color", "overlay_color", "gold_color", "shard_color"],
+      "c": { "coin_icon": "Assets/UI/item/jinbi.png", "shard_pattern": "res://Assets/UI/item/hrro_suipian_{shard_id}.png" },
+      "note": "Phase16: 结算弹窗, @export变量驱动布局, modulate+slide入场(不依赖scale), Timer触发freeze, ClickBlocker防穿透"
+    },
     "Scripts/Test/BattleTest.gd": {
       "ext": "Node2D",
       "r": "orchestrator",
       "c": { "wall_hp": 50 },
       "exp": ["current_stage_id"],
-      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_load_battle_ui"],
-      "note": "GridAnchor runtime-reparent: CanvasLayer→Node2D; layout_mode forced to 0 to survive anchor collapse"
+      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui"],
+      "note": "GridAnchor runtime-reparent: CanvasLayer→Node2D; Phase16: victory/defeat→BattleManager.show_settlement"
     }
   },
   "tscn": {
     "Scenes/BattleTest.tscn": { "s": "Scripts/Test/BattleTest.gd", "root": "Node2D", "ch": ["MapBackground"] },
     "Scenes/Hero.tscn": { "s": "Scripts/Entities/Hero.gd", "root": "Node2D", "ch": ["Sprite2D", "RayCast2D"] },
-    "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D"] },
+    "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D", "HPBarRed", "HPBar"] },
     "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["Panel", "Icon", "Label"] },
-    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"], "tiles": "Tile_1..Tile_25 Sprite2D under GridAnchor (runtime-reparented to Node2D)" }
+    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"], "tiles": "Tile_1..Tile_25 Sprite2D under GridAnchor (runtime-reparented to Node2D)" },
+    "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 2, "ch": ["SafeAreaContainer(MarginContainer)", "Panel", "VBoxContainer", "Label_Status", "RewardContainer(HBoxContainer)", "Btn_Action"] },
+    "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 2, "ch": ["SafeAreaContainer(MarginContainer)", "Panel", "VBoxContainer", "Label_Status", "RewardContainer(HBoxContainer)", "Btn_Action"] }
   },
   "res": {
     "hero": {
@@ -123,7 +136,9 @@
     "deploy": "CardUI.drag_ended→BattleTest._deploy_hero_from_card→BattleManager.apply_displacement(recursive_max5)→tween_0.25s",
     "deadlock": "DeckManager._physics_process(1s)→hand0+queue0+field0→rescue_pkg→GameEvents.deadlock_rescue_triggered→BattleUI.banner",
     "death": "HP≤0→DEATH_state→play_deal_frames_once→tween_fadeout→queue_free",
-    "victory": "WaveDirector._check_victory(all_spawned+alive=0)→GameEvents.stage_victory→BattleTest._on_stage_victory"
+    "victory": "WaveDirector._check_victory(all_spawned+alive=0)→GameEvents.stage_victory→BattleTest._on_stage_victory→BattleManager.show_settlement(true)→VictoryPanel.tscn",
+    "defeat": "BattleTest._trigger_game_over→GameEvents.game_over→BattleTest._on_game_over→BattleManager.show_settlement(false)→DefeatPanel.tscn",
+    "settlement": "show_settlement→读DataManager.rewards→CanvasLayer+set_script→_build_ui代码构建→setup→动画→tween.finished→time_scale=0"
   },
   "pitfalls": {
     "title": "Godot开发规范/避坑指南",

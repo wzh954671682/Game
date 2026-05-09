@@ -16,6 +16,12 @@ var _shake_remaining: float = 0.0
 # Damage text canvas (persistent, reused for all popups)
 var _damage_canvas: CanvasLayer = null
 
+# 防堆叠: 单帧飘字上限与计数器
+static var _popup_last_frame: int = -1
+static var _popup_frame_count: int = 0
+const POPUP_OFFSET_THRESHOLD: int = 5
+const POPUP_MAX_PER_FRAME: int = 15
+
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -93,7 +99,17 @@ func _find_camera() -> Camera2D:
 	return null
 
 
-func show_damage_text(world_pos: Vector2, value: int) -> void:
+func show_damage_text(world_pos: Vector2, value: int, is_crit: bool = false) -> void:
+	# 防堆叠: 每帧重置计数器, 超上限直接丢弃
+	var current_frame := Engine.get_process_frames()
+	if current_frame != _popup_last_frame:
+		_popup_last_frame = current_frame
+		_popup_frame_count = 0
+
+	if _popup_frame_count >= POPUP_MAX_PER_FRAME:
+		return
+	_popup_frame_count += 1
+
 	var camera := _find_camera()
 	if camera == null:
 		return
@@ -108,10 +124,17 @@ func show_damage_text(world_pos: Vector2, value: int) -> void:
 	# canvas_transform 方向: canvas → world, 取逆得 world → canvas
 	var screen_pos := camera.get_canvas_transform().affine_inverse() * world_pos
 
+	# 单帧飘字 > 5 时施加随机微量偏移防止重叠
+	if _popup_frame_count > POPUP_OFFSET_THRESHOLD:
+		screen_pos += Vector2(randf_range(-30.0, 30.0), randf_range(-20.0, 20.0))
+
+	var font_size: int = 54 if is_crit else 36
+	var font_color: Color = Color.YELLOW if is_crit else Color.WHITE
+
 	var label := Label.new()
 	label.text = str(value)
-	label.add_theme_font_size_override("font_size", 36)
-	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", font_color)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
 	label.add_theme_constant_override("outline_size", 3)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -125,4 +148,12 @@ func show_damage_text(world_pos: Vector2, value: int) -> void:
 	tween.set_parallel(true)
 	tween.tween_property(label, "position:y", screen_pos.y - 120, 0.6)
 	tween.tween_property(label, "modulate:a", 0.0, 0.6).from(1.0)
+
+	# 暴击弹性缩放
+	if is_crit:
+		label.scale = Vector2(0.5, 0.5)
+		var scale_tween := create_tween()
+		scale_tween.tween_property(label, "scale", Vector2.ONE, 0.1)\
+			.set_trans(Tween.TRANS_ELASTIC)
+
 	tween.finished.connect(label.queue_free)

@@ -8,6 +8,7 @@ const ENCRYPTION_KEY: String = "PocketHeroV1_ReplaceThisKey"
 
 var save_data: Dictionary = {
 	gold = 0,
+	shards = 0,
 	max_level = 1,
 	unlocked_cards = ["hero_01"]
 }
@@ -20,6 +21,7 @@ func _ready() -> void:
 func save_game() -> void:
 	var config := ConfigFile.new()
 	config.set_value("player", "gold", save_data["gold"])
+	config.set_value("player", "shards", save_data["shards"])
 	config.set_value("player", "max_level", save_data["max_level"])
 	config.set_value("player", "unlocked_cards", save_data["unlocked_cards"])
 
@@ -40,7 +42,8 @@ func load_game() -> void:
 		return
 
 	save_data["gold"] = config.get_value("player", "gold", save_data["gold"])
+	save_data["shards"] = config.get_value("player", "shards", save_data["shards"])
 	save_data["max_level"] = config.get_value("player", "max_level", save_data["max_level"])
 	save_data["unlocked_cards"] = config.get_value("player", "unlocked_cards", save_data["unlocked_cards"])
 
-	print("SaveManager: 存档已加载 — 金币=%d, 最高关卡=%d" % [save_data["gold"], save_data["max_level"]])
+	print("SaveManager: 存档已加载 — 金币=%d, 碎片=%d, 最高关卡=%d" % [save_data["gold"], save_data["shards"], save_data["max_level"]])

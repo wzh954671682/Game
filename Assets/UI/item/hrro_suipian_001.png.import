@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ca3iwjj7mo1uk"
-path="res://.godot/imported/90004.png-988b51b346e4991696fd52adf7c01b5e.ctex"
+uid="uid://c2x6u8yujr4x6"
+path="res://.godot/imported/hrro_suipian_001.png-faa71280c5bfbf47e8f533ab96e3b7c6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/UI/item/90004.png"
-dest_files=["res://.godot/imported/90004.png-988b51b346e4991696fd52adf7c01b5e.ctex"]
+source_file="res://Assets/UI/item/hrro_suipian_001.png"
+dest_files=["res://.godot/imported/hrro_suipian_001.png-faa71280c5bfbf47e8f533ab96e3b7c6.ctex"]
 
 [params]
 

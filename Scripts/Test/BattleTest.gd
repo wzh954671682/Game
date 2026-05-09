@@ -22,8 +22,13 @@ const INITIAL_CARD_POOL: Array[String] = [
 ]
 const FALLBACK_CARD_ID: String = "shielder_01"
 
+## Godot 4.6 — Control.LayoutMode enum not exposed to GDScript as named constants.
+## 0 = position-based, 1 = anchor-based (see Control.layout_mode docs).
+const LAYOUT_POSITION: int = 0
+const LAYOUT_ANCHORS: int = 1
+
 # === Wall state ===
-const WALL_MAX_HP: int = 50
+const WALL_MAX_HP: int = 3
 const WALL_FLASH_SEC: float = 0.15
 const WALL_HP_TWEEN_SEC: float = 0.25
 
@@ -158,9 +163,9 @@ func _validate_all_autoloads() -> void:
 	}
 
 	var missing: PackedStringArray = []
-	for name: String in autoloads:
-		if not is_instance_valid(autoloads[name]):
-			missing.append(name)
+	for autoload_name: String in autoloads:
+		if not is_instance_valid(autoloads[autoload_name]):
+			missing.append(autoload_name)
 
 	if not missing.is_empty():
 		push_error("[BattleTest] Autoload 缺失 (%d/%d): %s" % [missing.size(), autoloads.size(), ", ".join(missing)])
@@ -240,7 +245,7 @@ func _load_battle_ui() -> void:
 		var saved_pos: Vector2 = _grid_anchor.global_position
 		_battle_ui.remove_child(_grid_anchor)
 		add_child(_grid_anchor)
-		_grid_anchor.layout_mode = 0
+		_grid_anchor.layout_mode = LAYOUT_POSITION
 		_grid_anchor.global_position = saved_pos
 
 		var card_marker: Control = _battle_ui.get_node_or_null("CardTrayAnchor/CardStartMarker") as Control
@@ -308,7 +313,7 @@ func _setup_card_tray_manager() -> void:
 	_card_tray_manager.card_created.connect(_on_card_created)
 
 	if _hand_container:
-		_card_tray_manager.layout_mode = 1
+		_card_tray_manager.layout_mode = LAYOUT_ANCHORS
 		_card_tray_manager.anchors_preset = 15
 		_hand_container.add_child(_card_tray_manager)
 	elif _battle_ui:
@@ -490,6 +495,7 @@ func _deploy_hero_from_card(grid_pos: Vector2i, card_ui: Control) -> void:
 	add_child(hero)
 	BattleManager.apply_displacement(hero, grid_pos)
 	_sync_placed_heroes()
+	GameEvents.card_deployed.emit(grid_pos, card_ui.card_id)
 
 	print("[BattleTest] 英雄部署: %s → 格子 %s" % [card_ui.hero_name, grid_pos])
 
@@ -517,6 +523,8 @@ func _connect_game_signals() -> void:
 		GameEvents.enemy_died.connect(_on_enemy_died)
 	if not GameEvents.stage_victory.is_connected(_on_stage_victory):
 		GameEvents.stage_victory.connect(_on_stage_victory)
+	if not GameEvents.game_over.is_connected(_on_game_over):
+		GameEvents.game_over.connect(_on_game_over)
 
 
 # ============================================================
@@ -615,6 +623,7 @@ func _load_stage_data() -> void:
 		return
 
 	_current_map_id = stage_data.get("map_id", 1)
+	BattleManager.current_stage_id = current_stage_id
 	print("[BattleTest] 关卡数据已加载: stage=%s map=%d" % [current_stage_id, _current_map_id])
 
 
@@ -648,6 +657,12 @@ func _on_enemy_died(_pos: Vector2) -> void:
 func _on_stage_victory(stage_id: String) -> void:
 	print("[BattleTest] 关卡胜利: %s" % stage_id)
 	_wall_spawn_blocked = true
+	BattleManager.show_settlement(true)
+
+
+func _on_game_over() -> void:
+	print("[BattleTest] 关卡失败, 弹出结算")
+	BattleManager.show_settlement(false)
 
 
 # ============================================================

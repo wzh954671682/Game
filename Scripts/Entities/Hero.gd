@@ -24,6 +24,11 @@ var branch_path: String = ""
 
 var current_blocked_enemies: Array[Node2D] = []
 
+## 属性动态计算系统 (Phase 15.5)
+var _config_data: Dictionary = {}
+var _meta_bonuses: Dictionary = {}   ## 装备/天赋固定值加成, e.g. {"atk": 10, "hp": 50}
+var _buff_bonuses: Dictionary = {}   ## 战斗 Buff 百分比加成, e.g. {"atk": 0.15, "hp": 0.0}
+
 @onready var block_raycast: RayCast2D = $RayCast2D
 @onready var sprite_2d: Sprite2D = $Sprite2D
 
@@ -192,7 +197,8 @@ func _deal_damage_to_target() -> void:
 		return
 
 	if target.has_method("take_damage"):
-		var killed: bool = target.take_damage(attack_power)
+		var dmg: int = int(floor(get_final_stats("atk")))
+		var killed: bool = target.take_damage(dmg)
 		_play_attack_feedback()
 		if killed:
 			current_blocked_enemies.pop_front()
@@ -262,6 +268,7 @@ func init_hero(data: Dictionary) -> void:
 	base_atk = data.get("base_atk", 10)
 	base_hp = data.get("base_hp", 100)
 	branch_path = ""
+	_config_data = data
 
 	_apply_star_stats()
 	current_hp = max_health
@@ -305,10 +312,29 @@ func get_star_label() -> String:
 	return stars
 
 
+func get_final_stats(stat_name: String) -> float:
+	var base: float = 0.0
+	match stat_name:
+		"atk":
+			base = float(_config_data.get("base_atk", base_atk))
+		"hp":
+			base = float(_config_data.get("base_hp", base_hp))
+		"atk_speed":
+			var fi: float = _config_data.get("base_frame_interval", frame_interval)
+			base = 1.0 / fi if fi > 0.0 else 1.0 / frame_interval
+		_:
+			return 0.0
+
+	var meta: float = _meta_bonuses.get(stat_name, 0.0)
+	var star_bonus: float = STAR_MULTIPLIERS.get(current_star, 1.0) - 1.0
+	var buff: float = _buff_bonuses.get(stat_name, 0.0)
+
+	return (base + meta) * (1.0 + star_bonus) * (1.0 + buff)
+
+
 func _apply_star_stats() -> void:
-	var mult: float = STAR_MULTIPLIERS.get(current_star, 1.0)
-	attack_power = int(floor(base_atk * mult))
-	max_health = int(floor(base_hp * mult))
+	attack_power = int(floor(get_final_stats("atk")))
+	max_health = int(floor(get_final_stats("hp")))
 
 
 func _get_star_scale() -> float:

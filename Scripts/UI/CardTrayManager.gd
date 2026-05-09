@@ -141,9 +141,14 @@ func _on_card_removed(card: Control) -> void:
 	if _tween_slide and _tween_slide.is_valid():
 		_tween_slide.kill()
 
+	var count: int = _cards.size()
+	if count == 0:
+		_awaiting_refill = false
+		_process_refill()
+		return
+
 	_tween_slide = create_tween()
 	_tween_slide.set_parallel(true)
-	var count: int = _cards.size()
 	for i: int in range(count):
 		var cx: float = _card_target_x(i, count)
 		var dx: float = cx - size.x / 2.0
@@ -196,10 +201,13 @@ func _process_refill() -> void:
 func update_hand_layout(selected_index: int = -1) -> void:
 	_kill_push_tween()
 
+	var count: int = _cards.size()
+	if count == 0:
+		return
+
 	_tween_push = create_tween()
 	_tween_push.set_parallel(true)
 
-	var count: int = _cards.size()
 	var push: float = PUSH_OFFSET if selected_index >= 0 and selected_index < count else 0.0
 	var min_x: float = 20.0 + HALF_W
 	var max_x: float = size.x - 20.0 - HALF_W
