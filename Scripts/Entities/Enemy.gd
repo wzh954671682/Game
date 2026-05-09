@@ -31,6 +31,7 @@ var _frames_deal: Array[Texture2D] = []
 
 
 func _ready() -> void:
+	z_index = 0
 	current_hp = max_health
 	_load_frames()
 	_setup_flash_shader()
@@ -61,6 +62,7 @@ func _physics_process(delta: float) -> void:
 		global_position.y += move_speed * delta
 		if global_position.y > _bottom_boundary():
 			GameEvents.wall_hit.emit(wall_damage)
+			GameEvents.enemy_died.emit(global_position)
 			queue_free()
 
 	_update_animation(delta)

@@ -12,13 +12,10 @@ extends Node2D
 ##   CardTrayAnchor (ColorRect) — 手牌托盘占位标记
 
 const HERO_SCENE_PATH: String = "res://Scenes/Hero.tscn"
-const ENEMY_SCENE_PATH: String = "res://Scenes/Enemy.tscn"
 const CARD_SCENE_PATH: String = "res://Scenes/CardUI.tscn"
 const BATTLE_UI_PATH: String = "res://Scenes/UI/BattleUI.tscn"
 const HERO_DATA_PATH: String = "res://Data/heroes_progression.json"
 const BATTLE_MAP_DATA_PATH: String = "res://Data/battle_map.json"
-const SPAWN_INTERVAL_SEC: float = 3.0
-const SPAWN_OFFSET_ABOVE_SCREEN: float = -300.0
 const INITIAL_CARD_POOL: Array[String] = [
 	"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
 	"gunner_01", "gunner_01", "gunner_01", "gunner_01", "gunner_01",
@@ -38,15 +35,14 @@ const HP_COLOR_GREEN: Color = Color(0.20, 0.80, 0.30, 0.95)
 const HP_COLOR_YELLOW: Color = Color(0.90, 0.80, 0.15, 0.95)
 const HP_COLOR_RED: Color = Color(0.85, 0.15, 0.10, 0.95)
 
-# Level config (map per level)
-@export var current_level_id: String = "level_01"
-@export var current_map_id: int = 1
+# Stage config — map_id is derived from level_stage_config.json
+@export var current_stage_id: String = "stage_001"
+var _current_map_id: int = 1
 
 # Core systems
 var _map_sprite: Sprite2D = null
 var _camera: Camera2D = null
-var _spawn_timer: Timer = null
-var _enemy_count: int = 0
+var _wave_director: Node = null
 var _hero_scene: PackedScene = null
 
 # Hero templates: hero_id → Dictionary
@@ -95,6 +91,8 @@ func _ready() -> void:
 	_setup_camera()
 	_load_map_background()
 	_load_battle_ui()
+	_setup_wave_director()
+	_load_stage_data()
 	_setup_grid_map()
 	_load_scenes()
 	_load_hero_templates()
@@ -102,7 +100,7 @@ func _ready() -> void:
 	_setup_card_tray_manager()
 	_setup_wall_flash_timer()
 	_connect_game_signals()
-	_start_enemy_wave()
+	_launch_wave_director()
 	_activate_deck_manager()
 
 	print("[BattleTest] Grid center=%s  Wall boundary=%.0f  Tray top=%.0f" % [
@@ -235,12 +233,22 @@ func _load_battle_ui() -> void:
 		var anchor_center := _grid_anchor.global_position + _grid_anchor.size * 0.5
 		GridManager.set_grid_anchor_pos(anchor_center)
 
+		# Reparent GridAnchor from CanvasLayer → Node2D world.
+		# GridAnchor is a Control with anchor-based layout (anchors_preset=7),
+		# which collapses under Node2D. Save the screen position, switch to
+		# position-based layout, and restore so tiles + enemy spawns stay correct.
+		var saved_pos: Vector2 = _grid_anchor.global_position
+		_battle_ui.remove_child(_grid_anchor)
+		add_child(_grid_anchor)
+		_grid_anchor.layout_mode = 0
+		_grid_anchor.global_position = saved_pos
+
 		var card_marker: Control = _battle_ui.get_node_or_null("CardTrayAnchor/CardStartMarker") as Control
 		if card_marker:
 			var card_start := card_marker.global_position + card_marker.size * 0.5
 			GridManager.set_card_start_pos(card_start)
 
-	print("[BattleTest] BattleUI.tscn 已加载到 CanvasLayer")
+	print("[BattleTest] BattleUI.tscn 已加载到 CanvasLayer, GridAnchor 已移至 2D 世界")
 
 
 # ============================================================
@@ -248,12 +256,12 @@ func _load_battle_ui() -> void:
 # ============================================================
 
 func _setup_grid_map() -> void:
-	if _battle_ui == null or _map_sprite == null:
-		push_error("[BattleTest] _setup_grid_map: BattleUI 或 MapBackground 未就绪")
+	if _grid_anchor == null or _map_sprite == null:
+		push_error("[BattleTest] _setup_grid_map: GridAnchor 或 MapBackground 未就绪")
 		return
 
-	GridManager.setup_map(_battle_ui, _map_sprite)
-	GridManager.load_battle_map(current_map_id)
+	GridManager.setup_map(_grid_anchor, _map_sprite)
+	GridManager.load_battle_map(_current_map_id)
 
 
 # ============================================================
@@ -507,6 +515,8 @@ func _connect_game_signals() -> void:
 		GameEvents.wall_hit.connect(_on_wall_hit)
 	if not GameEvents.enemy_died.is_connected(_on_enemy_died):
 		GameEvents.enemy_died.connect(_on_enemy_died)
+	if not GameEvents.stage_victory.is_connected(_on_stage_victory):
+		GameEvents.stage_victory.connect(_on_stage_victory)
 
 
 # ============================================================
@@ -571,53 +581,50 @@ func _trigger_game_over() -> void:
 	if _wall_node:
 		_wall_node.self_modulate = WALL_COLOR_DEAD
 
-	if _spawn_timer:
-		_spawn_timer.stop()
+	if _wave_director:
+		_wave_director.set_process(false)
 
 	GameEvents.game_over.emit()
 	push_error("[BattleTest] ========== 城墙已毁! 游戏结束 ==========")
 
 
 # ============================================================
-# 敌人波次
+# WaveDirector — 数据驱动波次
 # ============================================================
 
-func _start_enemy_wave() -> void:
-	_spawn_timer = Timer.new()
-	_spawn_timer.name = "EnemyWaveSpawner"
-	_spawn_timer.wait_time = SPAWN_INTERVAL_SEC
-	_spawn_timer.one_shot = false
-	_spawn_timer.timeout.connect(_on_spawn_tick)
-	add_child(_spawn_timer)
-	_spawn_timer.start()
-
-	print("[BattleTest] 敌人波次已启动: 间隔 %.1f 秒" % SPAWN_INTERVAL_SEC)
-
-
-func _on_spawn_tick() -> void:
-	if _wall_spawn_blocked:
-		return
-	_spawn_enemy()
-
-
-func _spawn_enemy() -> void:
-	var enemy_scene: PackedScene = load(ENEMY_SCENE_PATH)
-	if enemy_scene == null:
-		push_error("[BattleTest] 无法加载 Enemy.tscn")
+func _setup_wave_director() -> void:
+	var wd_script: Script = load("res://Scripts/Logic/WaveDirector.gd")
+	if wd_script == null:
+		push_error("[BattleTest] 无法加载 WaveDirector.gd")
 		return
 
-	var col: int = randi_range(0, 4)
-	var spawn_logic: Vector2i = Vector2i(col, 0)
-	var screen_pos: Vector2 = GridManager.get_screen_pos(spawn_logic)
-	screen_pos.y += SPAWN_OFFSET_ABOVE_SCREEN
+	_wave_director = Node.new()
+	_wave_director.name = "WaveDirector"
+	_wave_director.set_script(wd_script)
+	add_child(_wave_director)
 
-	var enemy: Area2D = enemy_scene.instantiate()
-	_enemy_count += 1
-	enemy.name = "Enemy_%03d" % _enemy_count
-	enemy.set("move_speed", 90.0 + randf_range(-20.0, 40.0))
-	enemy.global_position = screen_pos
+	print("[BattleTest] WaveDirector 已挂载")
 
-	add_child(enemy)
+
+func _load_stage_data() -> void:
+	var stages: Dictionary = DataManager.stage_config.get("stages", {})
+	var stage_data: Dictionary = stages.get(current_stage_id, {})
+
+	if stage_data.is_empty():
+		push_error("[BattleTest] stage_id 不存在: " + current_stage_id)
+		return
+
+	_current_map_id = stage_data.get("map_id", 1)
+	print("[BattleTest] 关卡数据已加载: stage=%s map=%d" % [current_stage_id, _current_map_id])
+
+
+func _launch_wave_director() -> void:
+	if _wave_director == null:
+		push_error("[BattleTest] WaveDirector 未就绪, 无法开怪")
+		return
+
+	_wave_director.load_stage_script(current_stage_id)
+	print("[BattleTest] 波次导演已启动: stage=%s" % current_stage_id)
 
 
 # ============================================================
@@ -634,8 +641,13 @@ func _activate_deck_manager() -> void:
 # 信号回调
 # ============================================================
 
-func _on_enemy_died(pos: Vector2) -> void:
+func _on_enemy_died(_pos: Vector2) -> void:
 	pass
+
+
+func _on_stage_victory(stage_id: String) -> void:
+	print("[BattleTest] 关卡胜利: %s" % stage_id)
+	_wall_spawn_blocked = true
 
 
 # ============================================================

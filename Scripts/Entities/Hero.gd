@@ -62,6 +62,7 @@ var _frames_deal: Array[Texture2D] = []
 # ============================================================
 
 func _ready() -> void:
+	z_index = 0
 	_setup_flash_shader()
 	if not hero_id.is_empty():
 		_load_frames()

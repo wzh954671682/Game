@@ -1,0 +1,17 @@
+{
+  "stages": {
+    "stage_001": {
+      "map_id": 1,
+      "waves": [
+        {"spawn_time": 0.0, "monster_id": "monster_01", "lane": 2, "hp_multiplier": 1.0},
+        {"spawn_time": 3.0, "monster_id": "monster_01", "lane": 0, "hp_multiplier": 1.0},
+        {"spawn_time": 6.0, "monster_id": "monster_01", "lane": 4, "hp_multiplier": 1.2},
+        {"spawn_time": 9.0, "monster_id": "monster_01", "lane": 1, "hp_multiplier": 1.0},
+        {"spawn_time": 12.0, "monster_id": "monster_01", "lane": 3, "hp_multiplier": 1.5},
+        {"spawn_time": 15.0, "monster_id": "monster_01", "lane": 2, "hp_multiplier": 1.5},
+        {"spawn_time": 18.0, "monster_id": "monster_01", "lane": 0, "hp_multiplier": 2.0},
+        {"spawn_time": 21.0, "monster_id": "monster_01", "lane": 4, "hp_multiplier": 2.0}
+      ]
+    }
+  }
+}

@@ -5,10 +5,17 @@ extends Node
 ## should call FileAccess or JSON.parse_string directly.
 
 var error_messages: Dictionary = {}
+var monster_templates: Dictionary = {}
+var stage_config: Dictionary = {}
+
+const MONSTER_TEMPLATES_PATH: String = "res://Data/monster_templates.json"
+const STAGE_CONFIG_PATH: String = "res://Data/level_stage_config.json"
 
 
 func _ready() -> void:
 	error_messages = load_json("res://Data/error_codes.json")
+	monster_templates = load_json(MONSTER_TEMPLATES_PATH)
+	stage_config = load_json(STAGE_CONFIG_PATH)
 
 
 func load_json(file_path: String) -> Dictionary:

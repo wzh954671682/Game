@@ -54,85 +54,87 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_top = -1100.0
-offset_bottom = -1091.72
+offset_left = -47.0
+offset_top = -1041.0
+offset_right = -47.0
+offset_bottom = -1032.72
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="Tile_1" type="Sprite2D" parent="GridAnchor" unique_id=2027989392]
-position = Vector2(-364, -388)
+position = Vector2(-383, -388)
 
 [node name="Tile_2" type="Sprite2D" parent="GridAnchor" unique_id=1049170021]
-position = Vector2(-174, -388)
+position = Vector2(-193, -388)
 
 [node name="Tile_3" type="Sprite2D" parent="GridAnchor" unique_id=1621166541]
-position = Vector2(16, -388)
+position = Vector2(-3, -388)
 
 [node name="Tile_4" type="Sprite2D" parent="GridAnchor" unique_id=175605447]
-position = Vector2(206, -388)
+position = Vector2(187, -388)
 
 [node name="Tile_5" type="Sprite2D" parent="GridAnchor" unique_id=362183103]
-position = Vector2(396, -388)
+position = Vector2(377, -388)
 
 [node name="Tile_6" type="Sprite2D" parent="GridAnchor" unique_id=1387455403]
-position = Vector2(-364, -198)
+position = Vector2(-383, -198)
 
 [node name="Tile_7" type="Sprite2D" parent="GridAnchor" unique_id=1397087292]
-position = Vector2(-174, -198)
+position = Vector2(-193, -198)
 
 [node name="Tile_8" type="Sprite2D" parent="GridAnchor" unique_id=898206536]
-position = Vector2(16, -198)
+position = Vector2(-3, -198)
 
 [node name="Tile_9" type="Sprite2D" parent="GridAnchor" unique_id=674580153]
-position = Vector2(206, -198)
+position = Vector2(187, -198)
 
 [node name="Tile_10" type="Sprite2D" parent="GridAnchor" unique_id=269734525]
-position = Vector2(396, -198)
+position = Vector2(377, -198)
 
 [node name="Tile_11" type="Sprite2D" parent="GridAnchor" unique_id=1696099967]
-position = Vector2(-364, -8)
+position = Vector2(-383, -8)
 
 [node name="Tile_12" type="Sprite2D" parent="GridAnchor" unique_id=578694621]
-position = Vector2(-174, -8)
+position = Vector2(-193, -8)
 
 [node name="Tile_13" type="Sprite2D" parent="GridAnchor" unique_id=835358064]
-position = Vector2(16, -8)
+position = Vector2(-3, -8)
 
 [node name="Tile_14" type="Sprite2D" parent="GridAnchor" unique_id=426499890]
-position = Vector2(206, -8)
+position = Vector2(187, -8)
 
 [node name="Tile_15" type="Sprite2D" parent="GridAnchor" unique_id=1930765330]
-position = Vector2(396, -8)
+position = Vector2(377, -8)
 
 [node name="Tile_16" type="Sprite2D" parent="GridAnchor" unique_id=507224910]
-position = Vector2(-364, 182)
+position = Vector2(-383, 182)
 
 [node name="Tile_17" type="Sprite2D" parent="GridAnchor" unique_id=32808654]
-position = Vector2(-174, 182)
+position = Vector2(-193, 182)
 
 [node name="Tile_18" type="Sprite2D" parent="GridAnchor" unique_id=374705605]
-position = Vector2(16, 182)
+position = Vector2(-3, 182)
 
 [node name="Tile_19" type="Sprite2D" parent="GridAnchor" unique_id=25485401]
-position = Vector2(206, 182)
+position = Vector2(187, 182)
 
 [node name="Tile_20" type="Sprite2D" parent="GridAnchor" unique_id=1388551262]
-position = Vector2(396, 182)
+position = Vector2(377, 182)
 
 [node name="Tile_21" type="Sprite2D" parent="GridAnchor" unique_id=912594986]
-position = Vector2(-364, 372)
+position = Vector2(-383, 372)
 
 [node name="Tile_22" type="Sprite2D" parent="GridAnchor" unique_id=715972068]
-position = Vector2(-174, 372)
+position = Vector2(-193, 372)
 
 [node name="Tile_23" type="Sprite2D" parent="GridAnchor" unique_id=78072472]
-position = Vector2(16, 372)
+position = Vector2(-3, 372)
 
 [node name="Tile_24" type="Sprite2D" parent="GridAnchor" unique_id=1825182718]
-position = Vector2(206, 372)
+position = Vector2(187, 372)
 
 [node name="Tile_25" type="Sprite2D" parent="GridAnchor" unique_id=528450870]
-position = Vector2(396, 372)
+position = Vector2(377, 372)
 
 [node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=1668342283]
 anchors_preset = 5

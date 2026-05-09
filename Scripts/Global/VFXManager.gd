@@ -118,6 +118,7 @@ func show_damage_text(world_pos: Vector2, value: int) -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.position = screen_pos - Vector2(-90, 50)
 	label.size = Vector2(80, 40)
+	label.z_index = 20
 	_damage_canvas.add_child(label)
 
 	var tween := create_tween()

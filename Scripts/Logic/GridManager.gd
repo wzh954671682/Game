@@ -55,7 +55,6 @@ const MAP_CONFIG_PATH: String = "res://Data/battleMap_config.json"
 
 var _tile_nodes: Array[Sprite2D] = []
 var _map_bg: Sprite2D = null
-var _battle_ui: CanvasLayer = null
 var _tiles_ready: bool = false
 var _current_map_id: int = 0
 
@@ -172,10 +171,9 @@ func get_wall_bottom() -> float:
 # Map loading — 关卡背景 + 地块纹理注入
 # ============================================================
 
-func setup_map(battle_ui: CanvasLayer, map_bg: Sprite2D) -> void:
-	_battle_ui = battle_ui
+func setup_map(grid_anchor: Control, map_bg: Sprite2D) -> void:
 	_map_bg = map_bg
-	_cache_tile_nodes()
+	_cache_tile_nodes(grid_anchor)
 	if _tile_nodes.size() == TILE_COUNT:
 		_tiles_ready = true
 		print("[GridManager] setup_map: %d 个地块节点已缓存" % _tile_nodes.size())
@@ -231,16 +229,19 @@ func get_tile_for_grid_pos(grid_pos: Vector2i) -> Sprite2D:
 # Internal — map loading helpers
 # ============================================================
 
-func _cache_tile_nodes() -> void:
+func _cache_tile_nodes(grid_anchor: Control) -> void:
 	_tile_nodes.clear()
-	if _battle_ui == null:
-		return
-	var grid_anchor: Control = _battle_ui.get_node_or_null("GridAnchor") as Control
 	if grid_anchor == null:
 		push_error("[GridManager] _cache_tile_nodes: GridAnchor 节点不存在")
 		return
+
+	grid_anchor.top_level = false
+	grid_anchor.z_as_relative = true
+
 	for i: int in range(1, TILE_COUNT + 1):
 		var tile: Sprite2D = grid_anchor.get_node_or_null("Tile_%d" % i) as Sprite2D
+		if tile:
+			tile.z_index = -5
 		_tile_nodes.append(tile)
 
 

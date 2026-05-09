@@ -152,7 +152,7 @@ func _enter_selected() -> void:
 	_hover_tween = create_tween()
 	_hover_tween.tween_property(self, "scale", SELECTED_SCALE, 0.18)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	z_index = 200
+	z_index = 10
 
 	if _discard_btn:
 		_discard_btn.visible = true
@@ -177,7 +177,7 @@ func _enter_dragging() -> void:
 	_hover_tween = create_tween()
 	_hover_tween.tween_property(self, "scale", DRAG_SCALE, 0.12)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	z_index = 100
+	z_index = 10
 
 	if _discard_btn:
 		_discard_btn.visible = true
