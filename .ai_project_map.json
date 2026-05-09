@@ -2,7 +2,7 @@
   "v": 1,
   "engine": "godot4.6",
   "name": "GameDemo-w",
-  "res": [1080, 2160],
+  "resolution": [1080, 2160],
   "dirs": {
     "scripts": "Scripts",
     "scenes": "Scenes",
