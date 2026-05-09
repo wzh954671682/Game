@@ -1,0 +1,40 @@
+{
+  "levels": {
+    "1": {
+      "name": "level_01",
+      "bg": "res://BattleMap/ui_BattleBG_pass_01.png",
+      "tile_dir": "res://Assets/UI/gezi/map_01",
+      "tile_pattern": "gezi_{n}.png"
+    },
+    "2": {
+      "name": "level_02",
+      "bg": "res://BattleMap/ui_BattleBG_pass_02.png",
+      "tile_dir": "res://Assets/UI/gezi/map_02",
+      "tile_pattern": "gezi_{n}.png"
+    },
+    "3": {
+      "name": "level_03",
+      "bg": "res://BattleMap/ui_BattleBG_pass_03.png",
+      "tile_dir": "res://Assets/UI/gezi/map_03",
+      "tile_pattern": "gezi_{n}.png"
+    },
+    "4": {
+      "name": "level_04",
+      "bg": "res://BattleMap/ui_BattleBG_pass_04.png",
+      "tile_dir": "res://Assets/UI/gezi/map_04",
+      "tile_pattern": "gezi_{n}.png"
+    },
+    "5": {
+      "name": "level_05",
+      "bg": "res://BattleMap/ui_BattleBG_pass_05.png",
+      "tile_dir": "res://Assets/UI/gezi/map_05",
+      "tile_pattern": "gezi_{n}.png"
+    }
+  },
+  "grid": {
+    "cols": 5,
+    "rows": 5,
+    "tile_count": 25,
+    "tile_name_format": "Tile_{n}"
+  }
+}

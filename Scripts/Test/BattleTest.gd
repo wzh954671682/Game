@@ -40,6 +40,7 @@ const HP_COLOR_RED: Color = Color(0.85, 0.15, 0.10, 0.95)
 
 # Level config (map per level)
 @export var current_level_id: String = "level_01"
+@export var current_map_id: int = 1
 
 # Core systems
 var _map_sprite: Sprite2D = null
@@ -94,6 +95,7 @@ func _ready() -> void:
 	_setup_camera()
 	_load_map_background()
 	_load_battle_ui()
+	_setup_grid_map()
 	_load_scenes()
 	_load_hero_templates()
 	_create_drag_ghost()
@@ -191,33 +193,8 @@ func _load_map_background() -> void:
 	if not has_node("MapBackground"):
 		push_error("[BattleTest] MapBackground 节点缺失, 请在 BattleTest.tscn 中确认")
 		return
-
 	_map_sprite = $MapBackground
-
-	var map_data: Dictionary = DataManager.load_json(BATTLE_MAP_DATA_PATH)
-	if map_data.is_empty():
-		print("[BattleTest] battle_map.json 为空, 跳过背景加载")
-		return
-
-	var maps: Array = map_data.get("maps", [])
-	var bg_path: String = ""
-	for entry: Dictionary in maps:
-		if entry.get("level_id", "") == current_level_id:
-			bg_path = entry.get("bg_path", "")
-			break
-
-	if bg_path.is_empty():
-		print("[BattleTest] 关卡 %s 无背景配置, 跳过" % current_level_id)
-		return
-
-	var tex: Texture2D = load(bg_path)
-	if tex == null:
-		push_error("[BattleTest] 无法加载地图贴图: %s" % bg_path)
-		return
-
-	_map_sprite.texture = tex
-	_map_sprite.position = Vector2(GridManager.REF_WIDTH / 2.0, GridManager.REF_HEIGHT / 2.0)
-	print("[BattleTest] 关卡 %s 地图背景已加载: %s" % [current_level_id, bg_path])
+	print("[BattleTest] MapBackground 节点引用已获取")
 
 
 # ============================================================
@@ -264,6 +241,19 @@ func _load_battle_ui() -> void:
 			GridManager.set_card_start_pos(card_start)
 
 	print("[BattleTest] BattleUI.tscn 已加载到 CanvasLayer")
+
+
+# ============================================================
+# Grid map — 委托 GridManager 加载关卡背景 + 地块纹理
+# ============================================================
+
+func _setup_grid_map() -> void:
+	if _battle_ui == null or _map_sprite == null:
+		push_error("[BattleTest] _setup_grid_map: BattleUI 或 MapBackground 未就绪")
+		return
+
+	GridManager.setup_map(_battle_ui, _map_sprite)
+	GridManager.load_battle_map(current_map_id)
 
 
 # ============================================================

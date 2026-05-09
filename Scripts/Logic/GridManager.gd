@@ -49,6 +49,16 @@ var _scene_tray_height: float = 0.0
 var _card_start_pos: Vector2 = Vector2.ZERO
 var _has_card_start: bool = false
 
+# Per-tile visual system (Phase 13+)
+const TILE_COUNT: int = 25
+const MAP_CONFIG_PATH: String = "res://Data/battleMap_config.json"
+
+var _tile_nodes: Array[Sprite2D] = []
+var _map_bg: Sprite2D = null
+var _battle_ui: CanvasLayer = null
+var _tiles_ready: bool = false
+var _current_map_id: int = 0
+
 
 func _ready() -> void:
 	_refresh_layout()
@@ -101,6 +111,11 @@ func apply_scene_layout(wall_rect: Rect2, tray_rect: Rect2) -> void:
 
 func get_screen_pos(logic_pos: Vector2i) -> Vector2:
 	var clamped := _clamp_grid(logic_pos)
+	if _tiles_ready:
+		var tile: Sprite2D = get_tile_for_grid_pos(clamped)
+		if tile != null and is_instance_valid(tile):
+			return tile.global_position
+	# Fallback: math-based (no tile nodes cached)
 	return Vector2(
 		_grid_center.x + (clamped.x - 2) * _cell_size,
 		_grid_center.y + (clamped.y - 2) * _cell_size
@@ -151,6 +166,135 @@ func get_wall_height() -> float:
 
 func get_wall_bottom() -> float:
 	return get_wall_boundary() + get_wall_height()
+
+
+# ============================================================
+# Map loading — 关卡背景 + 地块纹理注入
+# ============================================================
+
+func setup_map(battle_ui: CanvasLayer, map_bg: Sprite2D) -> void:
+	_battle_ui = battle_ui
+	_map_bg = map_bg
+	_cache_tile_nodes()
+	if _tile_nodes.size() == TILE_COUNT:
+		_tiles_ready = true
+		print("[GridManager] setup_map: %d 个地块节点已缓存" % _tile_nodes.size())
+	else:
+		push_error("[GridManager] setup_map: 仅找到 %d/%d 个 Tile 节点 (GridAnchor 下)" % [_tile_nodes.size(), TILE_COUNT])
+
+
+func load_battle_map(map_id: int) -> void:
+	if map_id < 1 or map_id > 5:
+		push_error("[GridManager] load_battle_map: 无效的 map_id=%d (仅支持 1-5)" % map_id)
+		return
+
+	_current_map_id = map_id
+	var cfg: Dictionary = _load_map_config(map_id)
+	if cfg.is_empty():
+		push_error("[GridManager] load_battle_map: battleMap_config.json 中无关卡 %d" % map_id)
+		return
+
+	# 1. 背景
+	var bg_path: String = cfg.get("bg", "")
+	if not bg_path.is_empty():
+		_apply_background(bg_path)
+
+	# 2. 地块纹理
+	var tile_dir: String = cfg.get("tile_dir", "")
+	var tile_pat: String = cfg.get("tile_pattern", "gezi_{n}.png")
+	if not tile_dir.is_empty():
+		_apply_tile_textures(tile_dir, tile_pat)
+
+	# 3. 重算地块世界位置 (基于当前 grid_center + cell_size)
+	_position_all_tiles()
+
+	print("[GridManager] load_battle_map(%d) 完成 — bg=%s  tile_dir=%s" % [map_id, bg_path, tile_dir])
+
+
+func load_map_async(map_id: int) -> void:
+	print("[GridManager] load_map_async(%d) — 异步加载接口预留, 当前回退到同步加载" % map_id)
+	load_battle_map(map_id)
+
+
+func get_tile_node(index: int) -> Sprite2D:
+	if index >= 1 and index <= _tile_nodes.size():
+		return _tile_nodes[index - 1]
+	return null
+
+
+func get_tile_for_grid_pos(grid_pos: Vector2i) -> Sprite2D:
+	var index: int = grid_pos.y * GRID_COLS + grid_pos.x
+	return get_tile_node(index + 1)
+
+
+# ============================================================
+# Internal — map loading helpers
+# ============================================================
+
+func _cache_tile_nodes() -> void:
+	_tile_nodes.clear()
+	if _battle_ui == null:
+		return
+	var grid_anchor: Control = _battle_ui.get_node_or_null("GridAnchor") as Control
+	if grid_anchor == null:
+		push_error("[GridManager] _cache_tile_nodes: GridAnchor 节点不存在")
+		return
+	for i: int in range(1, TILE_COUNT + 1):
+		var tile: Sprite2D = grid_anchor.get_node_or_null("Tile_%d" % i) as Sprite2D
+		_tile_nodes.append(tile)
+
+
+func _load_map_config(map_id: int) -> Dictionary:
+	var raw: Dictionary = DataManager.load_json(MAP_CONFIG_PATH)
+	if raw.is_empty():
+		return {}
+	var levels: Dictionary = raw.get("levels", {})
+	return levels.get(str(map_id), {})
+
+
+func _apply_background(bg_path: String) -> void:
+	if _map_bg == null or not is_instance_valid(_map_bg):
+		push_error("[GridManager] _apply_background: MapBackground 引用无效")
+		return
+	var tex: Texture2D = load(bg_path)
+	if tex == null:
+		push_error("[GridManager] 无法加载背景贴图: %s" % bg_path)
+		return
+	_map_bg.texture = tex
+	_map_bg.position = Vector2(REF_WIDTH / 2.0, REF_HEIGHT / 2.0)
+
+
+func _apply_tile_textures(tile_dir: String, pattern: String) -> void:
+	var loaded: int = 0
+	for i: int in range(1, TILE_COUNT + 1):
+		if i - 1 >= _tile_nodes.size():
+			break
+		var tile: Sprite2D = _tile_nodes[i - 1]
+		if not is_instance_valid(tile):
+			continue
+		var file_name: String = pattern.replace("{n}", "%02d" % i)
+		var path: String = "%s/%s" % [tile_dir, file_name]
+		var tex: Texture2D = load(path)
+		if tex:
+			tile.texture = tex
+			loaded += 1
+	if loaded > 0:
+		print("[GridManager] _apply_tile_textures: %d/%d 地块纹理已加载" % [loaded, TILE_COUNT])
+
+
+func _position_all_tiles() -> void:
+	for row: int in range(GRID_ROWS):
+		for col: int in range(GRID_COLS):
+			var index: int = row * GRID_COLS + col + 1
+			if index - 1 >= _tile_nodes.size():
+				continue
+			var tile: Sprite2D = _tile_nodes[index - 1]
+			if not is_instance_valid(tile):
+				continue
+			tile.position = Vector2(
+				(col - 2) * _cell_size,
+				(row - 2) * _cell_size
+			)
 
 
 # ============================================================

@@ -46,8 +46,8 @@
     "Scripts/Global/VFXManager.gd": { "ext": "Node", "m": ["hit_stop"], "note": "PROCESS_MODE_ALWAYS" },
     "Scripts/Logic/GridManager.gd": {
       "ext": "Node",
-      "c": { "cols": 5, "rows": 5, "cell": 190, "rw": 1080, "rh": 2160 },
-      "m": ["get_screen_pos", "get_logic_pos", "get_wall_boundary", "get_card_tray_top", "apply_scene_layout", "set_grid_anchor_pos", "get_grid_center"]
+      "m": ["get_screen_pos", "get_logic_pos", "get_wall_boundary", "get_card_tray_top", "apply_scene_layout", "set_grid_anchor_pos", "get_grid_center", "setup_map", "load_battle_map", "load_map_async", "get_tile_node", "get_tile_for_grid_pos"],
+      "c": { "cols": 5, "rows": 5, "cell": 190, "rw": 1080, "rh": 2160, "tile_count": 25 }
     },
     "Scripts/Managers/BattleManager.gd": {
       "ext": "Node",
@@ -67,7 +67,9 @@
     "Scripts/Test/BattleTest.gd": {
       "ext": "Node2D",
       "r": "orchestrator",
-      "c": { "wall_hp": 50, "spawn_interval": 3.0, "speed_range": [70, 130] }
+      "c": { "wall_hp": 50, "spawn_interval": 3.0, "speed_range": [70, 130] },
+      "exp": ["current_level_id", "current_map_id"],
+      "m": ["_setup_grid_map"]
     }
   },
   "tscn": {
@@ -75,7 +77,7 @@
     "Scenes/Hero.tscn": { "s": "Scripts/Entities/Hero.gd", "root": "Node2D", "ch": ["Sprite2D", "RayCast2D"] },
     "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D"] },
     "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["Panel", "Icon", "Label"] },
-    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"] }
+    "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"], "tiles": "Tile_1..Tile_25 Sprite2D under GridAnchor" }
   },
   "res": {
     "hero": {
@@ -92,14 +94,16 @@
     },
     "shader": { "hit_flash": "Assets/Shaders/hit_flash.gdshader" },
     "ui": { "wall": "Assets/UI/wall_001.png" },
-    "bg": { "pat": "BattleMap/ui_BattleBG_pass_{n}.png", "n": [1, 5] }
+    "bg": { "pat": "BattleMap/ui_BattleBG_pass_{n}.png", "n": [1, 5] },
+    "tiles": { "pat": "Assets/UI/gezi/map_0{mid}/gezi_{n}.png", "mid": [1, 5], "n": [1, 25], "per_map": 25 }
   },
   "json": {
     "heroes_progression": "Data/heroes_progression.json",
     "battle_logic": "Data/battle_logic_config.json",
     "battle_map": "Data/battle_map.json",
     "error_codes": "Data/error_codes.json",
-    "wall_config": "Data/wall_config.json"
+    "wall_config": "Data/wall_config.json",
+    "battleMap_config": "Data/battleMap_config.json"
   },
   "flow": {
     "intercept": "Hero.try_intercept→RayCast2D→Enemy.set_paused(true)→both_ATTACK→Hero.frame2_deal_dmg; Enemy.attack_hit_signal→Hero.take_damage",

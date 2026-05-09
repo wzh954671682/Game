@@ -49,14 +49,90 @@ vertical_alignment = 1
 
 [node name="GridAnchor" type="Control" parent="." unique_id=688520752]
 layout_mode = 3
-anchors_preset = 5
+anchors_preset = 7
 anchor_left = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-offset_left = -10.0
-offset_top = 1040.0
-offset_right = 10.0
-offset_bottom = 1050.0
+anchor_bottom = 1.0
+offset_top = -1100.0
+offset_bottom = -1091.72
 grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Tile_1" type="Sprite2D" parent="GridAnchor" unique_id=2027989392]
+position = Vector2(-364, -388)
+
+[node name="Tile_2" type="Sprite2D" parent="GridAnchor" unique_id=1049170021]
+position = Vector2(-174, -388)
+
+[node name="Tile_3" type="Sprite2D" parent="GridAnchor" unique_id=1621166541]
+position = Vector2(16, -388)
+
+[node name="Tile_4" type="Sprite2D" parent="GridAnchor" unique_id=175605447]
+position = Vector2(206, -388)
+
+[node name="Tile_5" type="Sprite2D" parent="GridAnchor" unique_id=362183103]
+position = Vector2(396, -388)
+
+[node name="Tile_6" type="Sprite2D" parent="GridAnchor" unique_id=1387455403]
+position = Vector2(-364, -198)
+
+[node name="Tile_7" type="Sprite2D" parent="GridAnchor" unique_id=1397087292]
+position = Vector2(-174, -198)
+
+[node name="Tile_8" type="Sprite2D" parent="GridAnchor" unique_id=898206536]
+position = Vector2(16, -198)
+
+[node name="Tile_9" type="Sprite2D" parent="GridAnchor" unique_id=674580153]
+position = Vector2(206, -198)
+
+[node name="Tile_10" type="Sprite2D" parent="GridAnchor" unique_id=269734525]
+position = Vector2(396, -198)
+
+[node name="Tile_11" type="Sprite2D" parent="GridAnchor" unique_id=1696099967]
+position = Vector2(-364, -8)
+
+[node name="Tile_12" type="Sprite2D" parent="GridAnchor" unique_id=578694621]
+position = Vector2(-174, -8)
+
+[node name="Tile_13" type="Sprite2D" parent="GridAnchor" unique_id=835358064]
+position = Vector2(16, -8)
+
+[node name="Tile_14" type="Sprite2D" parent="GridAnchor" unique_id=426499890]
+position = Vector2(206, -8)
+
+[node name="Tile_15" type="Sprite2D" parent="GridAnchor" unique_id=1930765330]
+position = Vector2(396, -8)
+
+[node name="Tile_16" type="Sprite2D" parent="GridAnchor" unique_id=507224910]
+position = Vector2(-364, 182)
+
+[node name="Tile_17" type="Sprite2D" parent="GridAnchor" unique_id=32808654]
+position = Vector2(-174, 182)
+
+[node name="Tile_18" type="Sprite2D" parent="GridAnchor" unique_id=374705605]
+position = Vector2(16, 182)
+
+[node name="Tile_19" type="Sprite2D" parent="GridAnchor" unique_id=25485401]
+position = Vector2(206, 182)
+
+[node name="Tile_20" type="Sprite2D" parent="GridAnchor" unique_id=1388551262]
+position = Vector2(396, 182)
+
+[node name="Tile_21" type="Sprite2D" parent="GridAnchor" unique_id=912594986]
+position = Vector2(-364, 372)
+
+[node name="Tile_22" type="Sprite2D" parent="GridAnchor" unique_id=715972068]
+position = Vector2(-174, 372)
+
+[node name="Tile_23" type="Sprite2D" parent="GridAnchor" unique_id=78072472]
+position = Vector2(16, 372)
+
+[node name="Tile_24" type="Sprite2D" parent="GridAnchor" unique_id=1825182718]
+position = Vector2(206, 372)
+
+[node name="Tile_25" type="Sprite2D" parent="GridAnchor" unique_id=528450870]
+position = Vector2(396, 372)
 
 [node name="CardTrayAnchor" type="ColorRect" parent="." unique_id=1668342283]
 anchors_preset = 5
