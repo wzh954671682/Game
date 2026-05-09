@@ -39,8 +39,10 @@ offset_left = -540.0
 offset_top = -674.0
 offset_right = 546.0
 offset_bottom = 719.4032
-grow_horizontal = 2
-grow_vertical = 2
+grow_horizontal = 4
+grow_vertical = 4
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("3_bg_tex")
 expand_mode = 1
 stretch_mode = 5
@@ -92,11 +94,7 @@ icon = ExtResource("4_btn_tex")
 flat = true
 
 [node name="text" type="Label" parent="SafeAreaContainer/Wrapper/Background/Btn_Action" unique_id=1428433207]
-layout_mode = 0
-offset_left = 90.5
-offset_top = 14.596802
-offset_right = 370.5
-offset_bottom = 111.5968
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
