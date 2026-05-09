@@ -28,7 +28,7 @@ const LAYOUT_POSITION: int = 0
 const LAYOUT_ANCHORS: int = 1
 
 # === Wall state ===
-const WALL_MAX_HP: int = 50
+var _wall_max_hp: int = 0
 const WALL_FLASH_SEC: float = 0.15
 const WALL_HP_TWEEN_SEC: float = 0.25
 
@@ -67,8 +67,8 @@ var _highlight_valid: bool = false
 var _highlight_synthesis: bool = false
 
 # Wall state
-var _wall_current_hp: int = WALL_MAX_HP
-var _wall_displayed_hp: float = float(WALL_MAX_HP)
+var _wall_current_hp: int = 0
+var _wall_displayed_hp: float = 0.0
 var _wall_flash_active: bool = false
 var _wall_is_dead: bool = false
 var _wall_hp_tween: Tween = null
@@ -91,6 +91,9 @@ var _hand_container: Control = null
 # ============================================================
 
 func _ready() -> void:
+	_wall_max_hp = DataManager.wall_config.get("base_hp", 50)
+	_wall_current_hp = _wall_max_hp
+	_wall_displayed_hp = float(_wall_max_hp)
 	_print_header()
 	_validate_all_autoloads()
 	_setup_camera()
@@ -113,7 +116,7 @@ func _ready() -> void:
 		GridManager.get_wall_boundary(),
 		GridManager.get_card_tray_top(),
 	])
-	print("[BattleTest] 城墙 HP: %d/%d" % [_wall_current_hp, WALL_MAX_HP])
+	print("[BattleTest] 城墙 HP: %d/%d" % [_wall_current_hp, _wall_max_hp])
 
 
 func _process(_delta: float) -> void:
@@ -232,7 +235,7 @@ func _load_battle_ui() -> void:
 		_hp_fill_max_width = _hp_bar_fill.size.x
 
 	if _hp_label:
-		_hp_label.text = "%d/%d" % [_wall_current_hp, WALL_MAX_HP]
+		_hp_label.text = "%d/%d" % [_wall_current_hp, _wall_max_hp]
 
 	if _grid_anchor:
 		var anchor_center := _grid_anchor.global_position + _grid_anchor.size * 0.5
@@ -539,7 +542,7 @@ func _on_wall_hit(damage: int) -> void:
 	_wall_current_hp = maxi(_wall_current_hp - damage, 0)
 
 	if _hp_label:
-		_hp_label.text = "%d/%d" % [_wall_current_hp, WALL_MAX_HP]
+		_hp_label.text = "%d/%d" % [_wall_current_hp, _wall_max_hp]
 
 	# Red flash via Wall ColorRect
 	_wall_flash_active = true
@@ -558,9 +561,9 @@ func _on_wall_hit(damage: int) -> void:
 		WALL_HP_TWEEN_SEC,
 	)
 
-	GameEvents.wall_hp_changed.emit(_wall_current_hp, WALL_MAX_HP)
+	GameEvents.wall_hp_changed.emit(_wall_current_hp, _wall_max_hp)
 
-	print("[BattleTest] 城墙受击! 伤害=%d, HP: %d/%d" % [damage, _wall_current_hp, WALL_MAX_HP])
+	print("[BattleTest] 城墙受击! 伤害=%d, HP: %d/%d" % [damage, _wall_current_hp, _wall_max_hp])
 
 	if _wall_current_hp <= 0:
 		_trigger_game_over()
@@ -569,7 +572,7 @@ func _on_wall_hit(damage: int) -> void:
 func _on_wall_hp_tween_step(value: float) -> void:
 	_wall_displayed_hp = value
 	if _hp_bar_fill:
-		var ratio: float = _wall_displayed_hp / float(WALL_MAX_HP)
+		var ratio: float = _wall_displayed_hp / float(_wall_max_hp)
 		_hp_bar_fill.size.x = _hp_fill_max_width * ratio
 		if ratio > 0.5:
 			_hp_bar_fill.color = HP_COLOR_GREEN
@@ -579,7 +582,7 @@ func _on_wall_hp_tween_step(value: float) -> void:
 			_hp_bar_fill.color = HP_COLOR_RED
 
 	if _hp_label:
-		_hp_label.text = "%d/%d" % [int(_wall_displayed_hp), WALL_MAX_HP]
+		_hp_label.text = "%d/%d" % [int(_wall_displayed_hp), _wall_max_hp]
 
 
 func _trigger_game_over() -> void:

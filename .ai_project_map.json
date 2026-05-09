@@ -78,6 +78,7 @@
     "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
     "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup"], "z": { "idle": 0, "dragging": 10, "selected": 10 } },
     "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
+    "Scripts/UI/WrapperMonitor.gd": { "ext": "Control", "note": "Debug: 监控Wrapper节点size/position变化并打印日志" },
     "Scripts/UI/SettlementPanel.gd": {
       "ext": "CanvasLayer",
       "m": ["setup", "_play_entrance_animation", "_create_reward_icons", "_save_rewards", "_on_btn_action_pressed"],
@@ -100,8 +101,8 @@
     "Scenes/Enemy.tscn": { "s": "Scripts/Entities/Enemy.gd", "root": "Area2D", "ch": ["Sprite2D", "CollisionShape2D", "HPBarRed", "HPBar"] },
     "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["Panel", "Icon", "Label"] },
     "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["Wall", "GridAnchor", "CardTrayAnchor", "RescueBanner"], "tiles": "Tile_1..Tile_25 Sprite2D under GridAnchor (runtime-reparented to Node2D)" },
-    "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 2, "ch": ["SafeAreaContainer(MarginContainer)", "Panel", "VBoxContainer", "Label_Status", "RewardContainer(HBoxContainer)", "Btn_Action"] },
-    "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 2, "ch": ["SafeAreaContainer(MarginContainer)", "Panel", "VBoxContainer", "Label_Status", "RewardContainer(HBoxContainer)", "Btn_Action"] }
+    "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "Container Dominance: 容器子节点全用layout_mode=2+size_flags, 无anchor/offset残留" },
+    "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "结构100%对齐VictoryPanel, 仅text='失败'+defeat_color" }
   },
   "res": {
     "hero": {

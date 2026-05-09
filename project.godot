@@ -29,10 +29,10 @@ SaveManager="*res://Scripts/Global/SaveManager.gd"
 
 window/size/viewport_width=1080
 window/size/viewport_height=2160
-window/size/window_width_override=458
-window/size/window_height_override=814
+window/size/window_width_override=360
+window/size/window_height_override=720
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep"
 
 [physics]
 

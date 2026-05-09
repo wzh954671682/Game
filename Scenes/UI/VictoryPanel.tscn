@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c8dnc53pukrhi" path="res://Scripts/UI/SafeAreaContainer.gd" id="2_safearea"]
 [ext_resource type="Texture2D" uid="uid://dyvkiu52i3d8s" path="res://Assets/UI/battleEND/end_bg.png" id="3_bg_tex"]
 [ext_resource type="Texture2D" uid="uid://cr8c1o38jchld" path="res://Assets/UI/btn/btn_01.png" id="4_btn_tex"]
+[ext_resource type="Script" uid="uid://cdbdt1xdxdk4j" path="res://Scripts/UI/WrapperMonitor.gd" id="5_wrapper_monitor"]
 
 [node name="VictoryPanel" type="CanvasLayer" unique_id=1455121630]
 process_mode = 3
@@ -11,7 +12,6 @@ layer = 10
 script = ExtResource("1_script")
 
 [node name="SafeAreaContainer" type="MarginContainer" parent="." unique_id=1047242246]
-layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -20,43 +20,33 @@ grow_vertical = 2
 script = ExtResource("2_safearea")
 
 [node name="Wrapper" type="Control" parent="SafeAreaContainer" unique_id=47365420]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("5_wrapper_monitor")
+
+[node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper" unique_id=221399623]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -186.0
+offset_bottom = -186.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-
-[node name="Background" type="TextureRect" parent="SafeAreaContainer/Wrapper" unique_id=221399623]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -540.0
-offset_top = -674.0
-offset_right = 546.0
-offset_bottom = 719.4032
-grow_horizontal = 4
-grow_vertical = 4
-size_flags_horizontal = 4
-size_flags_vertical = 4
+size_flags_horizontal = 3
+size_flags_vertical = 3
 texture = ExtResource("3_bg_tex")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Label_Status" type="Label" parent="SafeAreaContainer/Wrapper/Background" unique_id=263937673]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -124.0
-offset_top = 205.0
-offset_right = 116.0
-offset_bottom = 370.0
-grow_horizontal = 2
+layout_mode = 0
+offset_left = 422.0
+offset_top = 343.0
+offset_right = 662.0
+offset_bottom = 508.0
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
@@ -67,34 +57,33 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="RewardContainer" type="VBoxContainer" parent="SafeAreaContainer/Wrapper/Background" unique_id=138873786]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_left = 101.0
+offset_top = 537.0
+offset_right = 974.0
+offset_bottom = 1032.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 200
 alignment = 1
 
 [node name="Btn_Action" type="Button" parent="SafeAreaContainer/Wrapper/Background" unique_id=1758956206]
 custom_minimum_size = Vector2(240, 80)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_bottom = -100.0
-grow_horizontal = 2
-grow_vertical = 0
+layout_mode = 0
+offset_left = 321.0
+offset_top = 1880.0
+offset_right = 792.0
+offset_bottom = 2016.0
 theme_override_font_sizes/font_size = 36
 icon = ExtResource("4_btn_tex")
 flat = true
 
 [node name="text" type="Label" parent="SafeAreaContainer/Wrapper/Background/Btn_Action" unique_id=1428433207]
-layout_mode = 2
+layout_mode = 0
+offset_left = 83.0
+offset_top = 13.0
+offset_right = 363.0
+offset_bottom = 110.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
