@@ -1,0 +1,12 @@
+{
+  "rarities": [
+    { "rarity_id": 1, "rarity_name": "粗糙", "bg_image_name": "quality_1.png" },
+    { "rarity_id": 2, "rarity_name": "普通", "bg_image_name": "quality_2.png" },
+    { "rarity_id": 3, "rarity_name": "优秀", "bg_image_name": "quality_3.png" },
+    { "rarity_id": 4, "rarity_name": "稀有", "bg_image_name": "quality_4.png" },
+    { "rarity_id": 5, "rarity_name": "史诗", "bg_image_name": "quality_5.png" },
+    { "rarity_id": 6, "rarity_name": "传说", "bg_image_name": "quality_6.png" },
+    { "rarity_id": 7, "rarity_name": "神话", "bg_image_name": "quality_7.png" },
+    { "rarity_id": 8, "rarity_name": "创世", "bg_image_name": "quality_8.png" }
+  ]
+}

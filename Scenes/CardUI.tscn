@@ -1,31 +1,31 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene format=3 uid="uid://cdxjgnbbjgvjh"]
 
-[ext_resource path="res://Scripts/UI/CardUI.gd" type="Script" id=1]
-[ext_resource path="res://icon.svg" type="Texture2D" id=2]
+[ext_resource type="Script" uid="uid://bn5s4inopno0b" path="res://Scripts/UI/CardUI.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://5tn3fav1tkyb" path="res://Assets/Heroes/heroshow/hero_001.png" id="2_hcufj"]
+[ext_resource type="Texture2D" path="res://Assets/UI/common/x.png" id="3_x_tex"]
 
-[node name="CardUI" type="Control"]
+[node name="CardUI" type="Control" unique_id=638982933]
 custom_minimum_size = Vector2(150, 200)
 layout_mode = 3
+anchors_preset = 0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
-script = ExtResource( 1 )
+script = ExtResource("1")
 
-[node name="Panel" type="Panel" parent="."]
-mouse_filter = 2
+[node name="CardBG" type="TextureRect" parent="." unique_id=918566648]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2.0
-offset_top = 2.0
-offset_right = -2.0
-offset_bottom = -2.0
-
-[node name="Icon" type="TextureRect" parent="."]
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Icon" type="TextureRect" parent="." unique_id=1118364174]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.35
 anchor_right = 0.5
@@ -34,20 +34,46 @@ offset_left = -40.0
 offset_top = -40.0
 offset_right = 40.0
 offset_bottom = 40.0
-texture = ExtResource( 2 )
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_hcufj")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=1217318573]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = -1
 anchor_left = 0.5
-anchor_bottom = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
+anchor_bottom = 1.0
 offset_left = -60.0
-offset_top = -36.0
+offset_top = 18.0
 offset_right = 60.0
-offset_bottom = -8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
 text = "卡牌"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiscardBtn" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -38.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 38.0
+mouse_filter = 1
+texture = ExtResource("3_x_tex")
+expand_mode = 1
+stretch_mode = 5

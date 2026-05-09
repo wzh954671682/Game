@@ -81,7 +81,7 @@ var _wall_node: TextureRect = null
 var _hp_bar_fill: ColorRect = null
 var _hp_fill_max_width: float = 0.0
 var _hp_label: Label = null
-var _tray_anchor: ColorRect = null
+var _tray_anchor: Control = null
 var _grid_anchor: Control = null
 var _hand_container: Control = null
 
@@ -220,7 +220,7 @@ func _load_battle_ui() -> void:
 	_wall_node = _battle_ui.get_node_or_null("Wall") as TextureRect
 	_hp_bar_fill = _battle_ui.get_node_or_null("Wall/HPBarFill") as ColorRect
 	_hp_label = _battle_ui.get_node_or_null("Wall/HPLabel") as Label
-	_tray_anchor = _battle_ui.get_node_or_null("CardTrayAnchor") as ColorRect
+	_tray_anchor = _battle_ui.get_node_or_null("CardTrayAnchor") as Control
 	_grid_anchor = _battle_ui.get_node_or_null("GridAnchor") as Control
 	_hand_container = _battle_ui.get_node_or_null("HandContainer") as Control
 

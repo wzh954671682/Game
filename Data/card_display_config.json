@@ -1,0 +1,7 @@
+{
+  "cards": [
+    { "card_id": "shielder_01", "card_type": "hero", "rarity_id": 1, "icon_image_name": "hero_001.png" },
+    { "card_id": "gunner_01",  "card_type": "hero", "rarity_id": 4, "icon_image_name": "hero_005.png" },
+    { "card_id": "effect_001", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "火球术" }
+  ]
+}

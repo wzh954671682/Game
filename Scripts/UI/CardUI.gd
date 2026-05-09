@@ -1,12 +1,9 @@
 extends Control
 
-## Self-contained draggable card with 3-state input FSM.
+## Data-driven card UI.
 ##
-## States:
-##   IDLE     — resting in tray. Press+move>10px → DRAGGING. Press+release → SELECTED.
-##   SELECTED — click-to-inspect. Scale 1.5x, z_index high. Click outside → IDLE.
-##              Press+move>10px from SELECTED → DRAGGING.
-##   DRAGGING — follow mouse, rotation feedback ±5°. Release → deploy or cancel → IDLE.
+## All visuals (background, icon, name) are resolved at runtime from
+## rarity_config.json, card_display_config.json, and heroes_progression.json.
 
 enum State { IDLE, SELECTED, DRAGGING }
 
@@ -22,16 +19,19 @@ var _start_click_pos: Vector2 = Vector2.ZERO
 var _mouse_pressed: bool = false
 var _hover_tween: Tween = null
 var _prev_mouse_x: float = 0.0
-var _discard_btn: Button = null
+@onready var _discard_btn: TextureRect = $DiscardBtn
 
 const DRAG_THRESHOLD: float = 10.0
 const SELECTED_SCALE: Vector2 = Vector2(1.5, 1.5)
 const DRAG_SCALE: Vector2 = Vector2(1.1, 1.1)
 
+const CARD_BG_PATH: String = "res://Assets/UI/card/"
+const CARD_ICON_PATH: String = "res://Assets/Heroes/heroshow/"
+
 
 func _ready() -> void:
 	pivot_offset = custom_minimum_size / 2.0
-	_create_discard_button()
+	_discard_btn.gui_input.connect(_on_discard_gui_input)
 
 
 func _notification(what: int) -> void:
@@ -39,38 +39,87 @@ func _notification(what: int) -> void:
 		pivot_offset = size / 2.0
 
 
-func _create_discard_button() -> void:
-	var btn: Button = Button.new()
-	btn.name = "DiscardBtn"
-	btn.text = "[X]"
-	btn.visible = false
-	btn.layout_mode = 1  # LAYOUT_MODE_ANCHORS (Godot 4.6: LayoutMode enum not exposed as named constant)
-	btn.anchor_left = 0.5
-	btn.anchor_right = 0.5
-	btn.anchor_top = 1.0
-	btn.anchor_bottom = 1.0
-	btn.offset_left = -20.0
-	btn.offset_top = -30.0
-	btn.offset_right = 20.0
-	btn.offset_bottom = 0.0
-	btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	btn.pressed.connect(_on_discard_pressed)
-	_discard_btn = btn
-	add_child(btn)
+# ============================================================
+# 数据驱动入口
+# ============================================================
 
-
-func setup(p_card_id: String, p_hero_name: String, p_icon: Texture2D = null) -> void:
+func setup_card(p_card_id: String) -> void:
 	card_id = p_card_id
-	hero_name = p_hero_name
 
-	if has_node("Icon"):
-		var icon_rect: TextureRect = $Icon
-		if p_icon:
-			icon_rect.texture = p_icon
+	# 1. 查 card_display_config → rarity_id / icon / card_type
+	var card_info: Dictionary = _find_card_info(card_id)
 
+	# 2. 查 rarity_config → 底图
+	var rarity_id: int = card_info.get("rarity_id", 1)
+	var bg_name: String = _find_rarity_bg(rarity_id)
+	_apply_texture("CardBG", CARD_BG_PATH + bg_name)
+
+	# 3. 图标
+	var icon_name: String = card_info.get("icon_image_name", "")
+	if not icon_name.is_empty():
+		_apply_texture("Icon", CARD_ICON_PATH + icon_name)
+
+	# 4. 名称
+	var card_type: String = card_info.get("card_type", "hero")
+	hero_name = _resolve_card_name(card_id, card_type, card_info)
 	if has_node("Label"):
-		var label: Label = $Label
-		label.text = p_hero_name
+		$Label.text = hero_name
+
+
+func _find_card_info(p_card_id: String) -> Dictionary:
+	var cards: Array = DataManager.card_display_config.get("cards", [])
+	for entry in cards:
+		if entry is Dictionary and entry.get("card_id", "") == p_card_id:
+			return entry
+	return {}
+
+
+func _find_rarity_bg(p_rarity_id: int) -> String:
+	var rarities: Array = DataManager.rarity_config.get("rarities", [])
+	for entry in rarities:
+		if entry is Dictionary and entry.get("rarity_id", 0) == p_rarity_id:
+			return entry.get("bg_image_name", "quality_1.png")
+	return "quality_1.png"
+
+
+func _resolve_card_name(p_card_id: String, p_card_type: String, p_card_info: Dictionary) -> String:
+	if p_card_type == "effect":
+		return p_card_info.get("default_name", p_card_id)
+
+	# hero 卡 → 读 heroes_progression.json
+	var templates: Array = DataManager.heroes_progression.get("hero_base_templates", [])
+	for entry in templates:
+		if entry is Dictionary and entry.get("hero_id", "") == p_card_id:
+			return entry.get("name", p_card_id)
+	return p_card_id
+
+
+func _apply_texture(node_name: String, path: String) -> void:
+	if not has_node(node_name):
+		return
+	if not ResourceLoader.exists(path):
+		push_warning("[CardUI] texture not found: " + path)
+		return
+	var node: TextureRect = get_node(node_name) as TextureRect
+	if node:
+		node.texture = load(path) as Texture2D
+
+
+# ============================================================
+# 向后兼容 — 旧的 setup() 挂载到 setup_card
+# ============================================================
+
+func setup(p_card_id: String, p_hero_name: String, _p_icon: Texture2D = null) -> void:
+	setup_card(p_card_id)
+
+
+# ============================================================
+# 弃牌按钮
+# ============================================================
+
+func _on_discard_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_on_discard_pressed()
 
 
 # ============================================================

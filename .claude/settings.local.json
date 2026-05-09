@@ -25,7 +25,17 @@
       "Bash(cat)",
       "Bash(/c/Users/34445/AppData/Local/Programs/Python/Python313/python.exe /tmp/fix_gd.py)",
       "Bash(convert --version)",
-      "Bash(python -c \"from PIL import Image; print\\('Pillow OK'\\)\")"
+      "Bash(python -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
+      "Bash(magick \"e:/GameDemo/Assets/UI/common/kapaiBG.png\" -resize 256x256 \"e:/GameDemo/Assets/UI/common/kapaiBG.png\")",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); img = img.resize\\(\\(256, 256\\), Image.LANCZOS\\); img.save\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); print\\('Done:', img.size\\)\")",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); img = img.resize\\(\\(256, 256\\), Image.LANCZOS\\); img.save\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); print\\('Done:', img.size\\)\")",
+      "Bash(pip install *)",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); img = img.resize\\(\\(256, 256\\), Image.LANCZOS\\); img.save\\('e:/GameDemo/Assets/UI/common/kapaiBG.png'\\); print\\('Resized to 256x256'\\)\")",
+      "Bash(python -c \"import sys; sys.stdout.reconfigure\\(encoding='utf-8'\\); from PIL import Image; img = Image.open\\(r'e:\\\\GameDemo\\\\Assets\\\\UI\\\\common\\\\kapaiBG.png'\\); img = img.resize\\(\\(256, 256\\), Image.LANCZOS\\); img.save\\(r'e:\\\\GameDemo\\\\Assets\\\\UI\\\\common\\\\kapaiBG.png'\\); print\\('Resized to 256x256'\\)\")",
+      "Bash(python _resize_temp.py)",
+      "Bash(python e:/GameDemo/_resize_temp.py)",
+      "Bash(\"c:/users/34445/appdata/local/programs/python/python313/python.exe\" \"e:/GameDemo/_resize_temp.py\")",
+      "Bash(grep -v '.import$')"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts",

@@ -8,10 +8,16 @@ var error_messages: Dictionary = {}
 var monster_templates: Dictionary = {}
 var stage_config: Dictionary = {}
 var wall_config: Dictionary = {}
+var rarity_config: Dictionary = {}
+var card_display_config: Dictionary = {}
+var heroes_progression: Dictionary = {}
 
 const MONSTER_TEMPLATES_PATH: String = "res://Data/monster_templates.json"
 const STAGE_CONFIG_PATH: String = "res://Data/level_stage_config.json"
 const WALL_CONFIG_PATH: String = "res://Data/wall_config.json"
+const RARITY_CONFIG_PATH: String = "res://Data/rarity_config.json"
+const CARD_DISPLAY_CONFIG_PATH: String = "res://Data/card_display_config.json"
+const HEROES_PROGRESSION_PATH: String = "res://Data/heroes_progression.json"
 
 
 func _ready() -> void:
@@ -19,6 +25,9 @@ func _ready() -> void:
 	monster_templates = load_json(MONSTER_TEMPLATES_PATH)
 	stage_config = load_json(STAGE_CONFIG_PATH)
 	wall_config = load_json(WALL_CONFIG_PATH)
+	rarity_config = load_json(RARITY_CONFIG_PATH)
+	card_display_config = load_json(CARD_DISPLAY_CONFIG_PATH)
+	heroes_progression = load_json(HEROES_PROGRESSION_PATH)
 
 
 func load_json(file_path: String) -> Dictionary:
