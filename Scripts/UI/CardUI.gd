@@ -84,7 +84,7 @@ func _find_rarity_bg(p_rarity_id: int) -> String:
 
 func _resolve_card_name(p_card_id: String, p_card_type: String, p_card_info: Dictionary) -> String:
 	if p_card_type == "effect":
-		return p_card_info.get("default_name", p_card_id)
+		return p_card_info.get("description", p_card_info.get("default_name", p_card_id))
 
 	# hero 卡 → 读 heroes_progression.json
 	var templates: Array = DataManager.heroes_progression.get("hero_base_templates", [])

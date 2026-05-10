@@ -313,6 +313,10 @@ func _on_atk_speed_decay() -> void:
 	frame_interval = _base_frame_interval
 
 
+func set_dimmed(dimmed: bool) -> void:
+	modulate = Color(0.25, 0.25, 0.25, 1.0) if dimmed else Color(1.0, 1.0, 1.0, 1.0)
+
+
 func _play_attack_feedback() -> void:
 	## 攻击时轻微 upscale 回弹
 	if sprite_2d == null:

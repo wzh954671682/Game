@@ -10,7 +10,7 @@
     {
       "hero_id": "shielder_01",
       "name": "盾兵",
-      "base_atk": 40,
+      "base_atk": 35,
       "base_hp": 1200,
       "base_def": 50,
       "block_count": 3,
@@ -21,7 +21,7 @@
     {
       "hero_id": "hero_002",
       "name": "弓箭手",
-      "base_atk": 60,
+      "base_atk": 70,
       "base_hp": 600,
       "base_def": 15,
       "block_count": 1,
@@ -32,7 +32,7 @@
     {
       "hero_id": "hero_003",
       "name": "魔法师",
-      "base_atk": 120,
+      "base_atk": 95,
       "base_hp": 400,
       "base_def": 10,
       "block_count": 1,
@@ -44,7 +44,7 @@
       "hero_id": "hero_004",
       "name": "辅助",
       "base_atk": 0,
-      "base_hp": 800,
+      "base_hp": 700,
       "base_def": 20,
       "block_count": 1,
       "attack_range": 1,

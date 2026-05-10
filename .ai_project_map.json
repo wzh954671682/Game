@@ -33,7 +33,7 @@
       "fsm": ["STANDBY", "ATTACK", "DEATH"],
       "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval", "attack_range", "_atk_speed_stacks", "hp_bar_show", "hp_bar_y_offset", "hp_bar_width", "hp_bar_height", "hp_bar_bg_color", "hp_bar_fill_color"],
       "sig": [],
-      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive", "_trigger_attack_passives", "_on_atk_speed_decay", "_on_enemy_attack_hit", "heal", "_setup_hp_bar", "_update_hp_bar"],
+      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive", "_trigger_attack_passives", "_on_atk_speed_decay", "_on_enemy_attack_hit", "heal", "set_dimmed", "_setup_hp_bar", "_update_hp_bar"],
       "stars": { "max": 5, "mult": [1.0, 1.5, 2.2, 3.0, 4.5], "scale": 0.1, "heal": 0.2 },
       "sprites": { "shielder_01": "001", "hero_002": "001", "hero_003": "001", "hero_004": "001" },
       "z": { "default": 0 },
@@ -101,7 +101,7 @@
       "r": "orchestrator",
       "c": { "wall_hp": 50 },
       "exp": ["current_stage_id"],
-      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui", "_handle_effect_card", "_build_initial_card_pool", "_deploy_squad_heroes"],
+      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui", "_handle_effect_card", "_build_initial_card_pool", "_deploy_squad_heroes", "_update_hero_dim", "_dim_all_heroes_except", "_set_all_heroes_dimmed"],
       "note": "Phase18: _build_initial_card_pool从SaveManager读阵容→3x每英雄+效果卡; _deploy_squad_heroes预部署后排(i,4)"
     }
   },

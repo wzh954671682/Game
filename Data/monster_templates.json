@@ -1,7 +1,7 @@
 {
   "monster_templates": {
     "monster_01": {
-      "base_hp": 100,
+      "base_hp": 150,
       "base_speed": 100.0,
       "base_wall_damage": 1,
       "base_attack_damage": 5,
@@ -9,7 +9,7 @@
       "note": "冲锋兵 — 基础压力单位"
     },
     "monster_02": {
-      "base_hp": 800,
+      "base_hp": 650,
       "base_speed": 30.0,
       "base_wall_damage": 1,
       "base_attack_damage": 25,
@@ -26,7 +26,7 @@
       "note": "刺客 — 突袭/闪避型, 随机横移1格"
     },
     "monster_04": {
-      "base_hp": 1200,
+      "base_hp": 1000,
       "base_speed": 25.0,
       "base_wall_damage": 5,
       "base_attack_damage": 20,
@@ -35,7 +35,7 @@
     },
     "monster_05": {
       "base_hp": 150,
-      "base_speed": 90.0,
+      "base_speed": 80.0,
       "base_wall_damage": 1,
       "base_attack_damage": 20,
       "exp_reward": 80,
@@ -44,7 +44,7 @@
     },
     "monster_06": {
       "base_hp": 120,
-      "base_speed": 130.0,
+      "base_speed": 100.0,
       "base_wall_damage": 10,
       "base_attack_damage": 0,
       "exp_reward": 100,
@@ -53,7 +53,7 @@
       "note": "自爆怪 — 死亡3×3爆炸, 巨额城墙伤害"
     },
     "BigMonster_01": {
-      "base_hp": 4000,
+      "base_hp": 3500,
       "base_speed": 25.0,
       "base_wall_damage": 5,
       "base_attack_damage": 80,

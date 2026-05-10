@@ -139,12 +139,8 @@ func _process(_delta: float) -> void:
 	var grid_pos: Vector2i = GridManager.get_logic_pos(mouse_pos)
 	_highlight_grid_pos = grid_pos
 
-	# Highlight: effect cards always valid, hero cards use synthesis logic
 	var card_type: String = EffectResolver.card_type_from_id(_active_drag_card.card_id)
-	if card_type != "hero":
-		_highlight_synthesis = false
-		_highlight_valid = true
-	else:
+	if card_type == "hero":
 		_highlight_synthesis = false
 		if _placed_heroes.has(grid_pos):
 			var existing: Node2D = _placed_heroes[grid_pos]
@@ -155,6 +151,25 @@ func _process(_delta: float) -> void:
 				_highlight_valid = false
 		else:
 			_highlight_valid = true
+	else:
+		_highlight_synthesis = false
+		var card_data: Dictionary = EffectResolver.get_card_data(_active_drag_card.card_id)
+		var restriction: Dictionary = card_data.get("target_restriction", {})
+		var rtype: String = restriction.get("type", "none")
+		if rtype == "none":
+			_highlight_valid = true
+		else:
+			var target_hero: Node2D = _placed_heroes.get(grid_pos)
+			if target_hero:
+				if rtype == "any_hero":
+					_highlight_valid = true
+				elif rtype == "specific_hero":
+					var required_id: String = restriction.get("hero_id", "")
+					_highlight_valid = (target_hero.hero_id == required_id)
+				else:
+					_highlight_valid = false
+			else:
+				_highlight_valid = false
 
 	if _highlight_synthesis:
 		_ghost_sprite.self_modulate = Color.GOLD
@@ -162,6 +177,8 @@ func _process(_delta: float) -> void:
 		_ghost_sprite.self_modulate = Color.GREEN
 	else:
 		_ghost_sprite.self_modulate = Color.RED
+
+	_update_hero_dim()
 	queue_redraw()
 
 
@@ -408,6 +425,43 @@ func _draw_grid_highlight() -> void:
 # 卡牌拖拽信号
 # ============================================================
 
+func _update_hero_dim() -> void:
+	var card_type: String = EffectResolver.card_type_from_id(_active_drag_card.card_id)
+
+	var target_hero: Node2D = null
+	var should_dim: bool = false
+
+	if card_type == "hero":
+		if _highlight_synthesis and _placed_heroes.has(_highlight_grid_pos):
+			target_hero = _placed_heroes[_highlight_grid_pos]
+			should_dim = true
+	else:
+		var card_data: Dictionary = EffectResolver.get_card_data(_active_drag_card.card_id)
+		var restriction: Dictionary = card_data.get("target_restriction", {})
+		var rtype: String = restriction.get("type", "none")
+		if rtype != "none" and _highlight_valid and _placed_heroes.has(_highlight_grid_pos):
+			target_hero = _placed_heroes[_highlight_grid_pos]
+			should_dim = true
+
+	if should_dim:
+		_dim_all_heroes_except(target_hero)
+	else:
+		_set_all_heroes_dimmed(false)
+
+
+func _dim_all_heroes_except(target: Node2D) -> void:
+	for hero in get_tree().get_nodes_in_group("heroes"):
+		if not is_instance_valid(hero) or not hero.has_method("set_dimmed"):
+			continue
+		hero.set_dimmed(hero != target)
+
+
+func _set_all_heroes_dimmed(dimmed: bool) -> void:
+	for hero in get_tree().get_nodes_in_group("heroes"):
+		if is_instance_valid(hero) and hero.has_method("set_dimmed"):
+			hero.set_dimmed(dimmed)
+
+
 func _on_card_drag_started(card_ui: Control) -> void:
 	_active_drag_card = card_ui
 	_ghost_sprite.visible = true
@@ -415,6 +469,7 @@ func _on_card_drag_started(card_ui: Control) -> void:
 
 func _on_card_drag_ended(card_ui: Control, _screen_pos: Vector2) -> void:
 	_ghost_sprite.visible = false
+	_set_all_heroes_dimmed(false)
 	_highlight_grid_pos = Vector2i(-1, -1)
 	_highlight_synthesis = false
 	queue_redraw()
@@ -462,6 +517,7 @@ func _on_card_drag_ended(card_ui: Control, _screen_pos: Vector2) -> void:
 func _on_card_drag_cancelled(card_ui: Control) -> void:
 	_active_drag_card = null
 	_ghost_sprite.visible = false
+	_set_all_heroes_dimmed(false)
 	_highlight_grid_pos = Vector2i(-1, -1)
 	_highlight_synthesis = false
 	queue_redraw()

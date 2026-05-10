@@ -1,5 +1,5 @@
 {
-  "base_hp": 5,
+  "base_hp": 100,
   "growth_coefficient": 0.15,
   "upgrade_base_cost": 500,
   "cost_exponent": 1.2,
