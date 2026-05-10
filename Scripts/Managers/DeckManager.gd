@@ -7,7 +7,7 @@ signal card_drawn(card_id: String)
 
 const MAX_HAND_SIZE: int = 5
 const INITIAL_SILENCE_SEC: float = 5.0
-const RESCUE_COOLDOWN_SEC: float = 10.0
+const RESCUE_COOLDOWN_SEC: float = 4.0
 const DRAW_INTERVAL_SEC: float = 0.1
 const SCAN_INTERVAL_SEC: float = 1.0
 
