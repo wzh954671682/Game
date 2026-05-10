@@ -28,6 +28,8 @@ var current_blocked_enemies: Array[Node2D] = []
 var _config_data: Dictionary = {}
 var _meta_bonuses: Dictionary = {}   ## 装备/天赋固定值加成, e.g. {"atk": 10, "hp": 50}
 var _buff_bonuses: Dictionary = {}   ## 战斗 Buff 百分比加成, e.g. {"atk": 0.15, "hp": 0.0}
+var passive_effects: Array[Dictionary] = []  ## 被动效果列表
+var _timed_buff_timers: Dictionary = {}  ## stat → Timer (限时Buff自动清理)
 
 @onready var block_raycast: RayCast2D = $RayCast2D
 @onready var sprite_2d: Sprite2D = $Sprite2D
@@ -312,6 +314,44 @@ func get_star_label() -> String:
 	return stars
 
 
+# ============================================================
+# Buff / 被动 接口 (EffectResolver 调用)
+# ============================================================
+
+func apply_permanent_buff(stat: String, value: float) -> void:
+	_buff_bonuses[stat] = _buff_bonuses.get(stat, 0.0) + value / 100.0
+	_apply_star_stats()
+
+
+func apply_timed_buff(stat: String, value: float, duration: float) -> void:
+	var pct: float = value / 100.0
+	_buff_bonuses[stat] = _buff_bonuses.get(stat, 0.0) + pct
+	_apply_star_stats()
+
+	var timer := Timer.new()
+	timer.one_shot = true
+	timer.wait_time = duration
+	timer.timeout.connect(_on_timed_buff_expire.bind(stat, pct))
+	add_child(timer)
+	timer.start()
+	_timed_buff_timers[stat] = timer
+
+
+func _on_timed_buff_expire(stat: String, pct: float) -> void:
+	_buff_bonuses[stat] = maxf(_buff_bonuses.get(stat, 0.0) - pct, 0.0)
+	_apply_star_stats()
+	_timed_buff_timers.erase(stat)
+
+
+func apply_passive(passive_data: Dictionary) -> void:
+	var existing_type: String = passive_data.get("type", "")
+	for i in range(passive_effects.size()):
+		if passive_effects[i].get("type", "") == existing_type:
+			passive_effects[i] = passive_data
+			return
+	passive_effects.append(passive_data)
+
+
 func get_final_stats(stat_name: String) -> float:
 	var base: float = 0.0
 	match stat_name:
@@ -385,7 +425,7 @@ func try_intercept() -> void:
 		enemy.set_paused(true)
 
 		if enemy.has_signal("attack_hit") and not enemy.attack_hit.is_connected(_on_enemy_attack_hit):
-			enemy.attack_hit.connect(_on_enemy_attack_hit)
+			enemy.attack_hit.connect(_on_enemy_attack_hit.bind(enemy))
 
 	print("[Intercepted] 英雄拦截怪物: %s (当前拦截数: %d/%d)" % [enemy.name, current_blocked_enemies.size(), max_block_count])
 
@@ -398,11 +438,27 @@ func _cleanup_dead_enemies() -> void:
 		i -= 1
 
 
-func _on_enemy_attack_hit(damage: int) -> void:
+func _on_enemy_attack_hit(damage: int, attacker: Node2D = null) -> void:
 	if _state == State.DEATH:
 		return
 	current_hp -= damage
 	_play_hit_flash()
+
+	# 被动效果触发
+	for passive in passive_effects:
+		match passive.get("type", ""):
+			"on_hit":
+				var stat: String = passive.get("stat", "hp")
+				var val: float = passive.get("value", 0.0)
+				_meta_bonuses[stat] = _meta_bonuses.get(stat, 0.0) + val
+				_apply_star_stats()
+				current_hp = mini(current_hp + int(val), max_health)
+			"thorns":
+				if attacker != null and is_instance_valid(attacker) and attacker.has_method("take_damage"):
+					var reflect_dmg: int = ceili(max_health * passive.get("percent", 0.0) / 100.0)
+					if reflect_dmg > 0:
+						attacker.take_damage(reflect_dmg)
+
 	if current_hp <= 0:
 		current_hp = 0
 		_die()

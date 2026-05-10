@@ -71,6 +71,11 @@ func on_card_deployed() -> void:
 	_try_fill_hand()
 
 
+func on_effect_used() -> void:
+	hand_count = maxi(hand_count - 1, 0)
+	_try_fill_hand()
+
+
 func on_hero_died() -> void:
 	field_hero_count = maxi(field_hero_count - 1, 0)
 	if _silence_elapsed >= INITIAL_SILENCE_SEC and card_queue.is_empty() and hand_count == 0:

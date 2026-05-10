@@ -19,6 +19,7 @@ const BATTLE_MAP_DATA_PATH: String = "res://Data/battle_map.json"
 const INITIAL_CARD_POOL: Array[String] = [
 	"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
 	"gunner_01", "gunner_01", "gunner_01", "gunner_01", "gunner_01",
+	"adventure_freeze", "global_heal", "buff_armor", "exclusive_cell",
 ]
 const FALLBACK_CARD_ID: String = "shielder_01"
 
@@ -135,17 +136,22 @@ func _process(_delta: float) -> void:
 	var grid_pos: Vector2i = GridManager.get_logic_pos(mouse_pos)
 	_highlight_grid_pos = grid_pos
 
-	# Phase 9: synthesis detection
-	_highlight_synthesis = false
-	if _placed_heroes.has(grid_pos):
-		var existing: Node2D = _placed_heroes[grid_pos]
-		if existing.has_method("can_star_up") and existing.can_star_up(_active_drag_card.card_id):
-			_highlight_synthesis = true
-			_highlight_valid = false
-		else:
-			_highlight_valid = false
-	else:
+	# Highlight: effect cards always valid, hero cards use synthesis logic
+	var card_type: String = EffectResolver.card_type_from_id(_active_drag_card.card_id)
+	if card_type != "hero":
+		_highlight_synthesis = false
 		_highlight_valid = true
+	else:
+		_highlight_synthesis = false
+		if _placed_heroes.has(grid_pos):
+			var existing: Node2D = _placed_heroes[grid_pos]
+			if existing.has_method("can_star_up") and existing.can_star_up(_active_drag_card.card_id):
+				_highlight_synthesis = true
+				_highlight_valid = false
+			else:
+				_highlight_valid = false
+		else:
+			_highlight_valid = true
 
 	if _highlight_synthesis:
 		_ghost_sprite.self_modulate = Color.GOLD
@@ -418,12 +424,17 @@ func _on_card_drag_ended(card_ui: Control, _screen_pos: Vector2) -> void:
 		_cancel_deploy(card_ui)
 		return
 
-	# Reject drops below the wall (below game area)
+	var grid_pos: Vector2i = GridManager.get_logic_pos(world_pos)
+
+	# Effect card branch — data-driven, no grid deployment
+	if EffectResolver.card_type_from_id(card_ui.card_id) != "hero":
+		_handle_effect_card(card_ui, grid_pos)
+		return
+
+	# Reject hero drops below the wall
 	if world_pos.y > GridManager.get_wall_boundary():
 		_cancel_deploy(card_ui)
 		return
-
-	var grid_pos: Vector2i = GridManager.get_logic_pos(world_pos)
 
 	# Phase 9: synthesis detection
 	if _placed_heroes.has(grid_pos):
@@ -466,7 +477,37 @@ func _synthesize_hero(hero: Node2D, card_ui: Control) -> void:
 	print("[BattleTest] 合成成功: %s → %d★ (%s)" % [card_ui.hero_name, hero.current_star, hero.get_star_label()])
 
 
-func _destroy_card(card_ui: Control) -> void:
+# ============================================================
+# 效果卡处理
+# ============================================================
+
+func _handle_effect_card(card_ui: Control, grid_pos: Vector2i) -> void:
+	var card_data: Dictionary = EffectResolver.get_card_data(card_ui.card_id)
+	if card_data.is_empty():
+		print("[BattleTest] 效果卡数据未找到: " + card_ui.card_id)
+		_cancel_deploy(card_ui)
+		return
+
+	var result: Dictionary = EffectResolver.resolve_targets(card_data, grid_pos)
+	if not result.get("ok", false):
+		print("[BattleTest] 效果卡释放失败: " + result.get("error", "未知错误"))
+		_cancel_deploy(card_ui)
+		return
+
+	EffectResolver.execute_card(card_data, result.get("targets", []))
+
+	var vfx_path: String = card_data.get("vfx_prefab_path", "")
+	if not vfx_path.is_empty():
+		var vfx_pos: Vector2 = GridManager.get_grid_center()
+		var targets: Array = result.get("targets", [])
+		if targets.size() > 0 and is_instance_valid(targets[0]):
+			vfx_pos = (targets[0] as Node2D).global_position
+		VFXManager.play_skill_vfx(vfx_path, vfx_pos)
+
+	_destroy_card(card_ui, true)
+
+
+func _destroy_card(card_ui: Control, is_effect: bool = false) -> void:
 	if card_ui.drag_started.is_connected(_on_card_drag_started):
 		card_ui.drag_started.disconnect(_on_card_drag_started)
 	if card_ui.drag_ended.is_connected(_on_card_drag_ended):
@@ -474,7 +515,12 @@ func _destroy_card(card_ui: Control) -> void:
 	if card_ui.drag_cancelled.is_connected(_on_card_drag_cancelled):
 		card_ui.drag_cancelled.disconnect(_on_card_drag_cancelled)
 	card_ui.queue_free()
-	DeckManager.on_card_deployed()
+
+	if is_effect:
+		DeckManager.on_effect_used()
+	else:
+		DeckManager.on_card_deployed()
+
 	_active_drag_card = null
 
 	print("[BattleTest] 卡牌消耗: %s, 手牌=%d, 场上=%d" % [

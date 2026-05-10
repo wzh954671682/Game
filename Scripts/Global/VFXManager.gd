@@ -83,6 +83,40 @@ func _on_wall_hit(_damage: int) -> void:
 
 
 # ============================================================
+# 技能特效
+# ============================================================
+
+func play_skill_vfx(prefab_path: String, world_pos: Vector2) -> void:
+	if prefab_path.is_empty():
+		return
+	if not ResourceLoader.exists(prefab_path):
+		push_warning("[VFXManager] VFX prefab not found: " + prefab_path)
+		return
+
+	var camera := _find_camera()
+	if camera == null:
+		return
+
+	var scene: PackedScene = load(prefab_path) as PackedScene
+	var instance: Node = scene.instantiate()
+	if instance is Node2D:
+		(instance as Node2D).global_position = world_pos
+	camera.get_parent().add_child(instance)
+
+	var ap: AnimationPlayer = instance.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	if ap and ap.has_animation("play"):
+		ap.play("play")
+		ap.animation_finished.connect(instance.queue_free, CONNECT_ONE_SHOT)
+	else:
+		var timer := Timer.new()
+		timer.one_shot = true
+		timer.wait_time = 2.0
+		timer.timeout.connect(instance.queue_free)
+		instance.add_child(timer)
+		timer.start()
+
+
+# ============================================================
 # 伤害飘字
 # ============================================================
 

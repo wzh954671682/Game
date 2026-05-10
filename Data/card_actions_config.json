@@ -1,0 +1,136 @@
+{
+  "cards": [
+    {
+      "card_id": "adventure_collapse",
+      "card_type": "adventure",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "维度坍塌",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "reduce_current_hp_percent", "target": "all_enemies", "target_filter": "not_boss", "value": 50 }
+      ]
+    },
+    {
+      "card_id": "adventure_freeze",
+      "card_type": "adventure",
+      "rarity_id": 4,
+      "icon_image_name": "hero_003.png",
+      "default_name": "寒冰降临",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "freeze", "target": "all_enemies", "duration": 5.0 }
+      ]
+    },
+    {
+      "card_id": "adventure_angel",
+      "card_type": "adventure",
+      "rarity_id": 6,
+      "icon_image_name": "hero_003.png",
+      "default_name": "天使降临",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "heal_full", "target": "all_heroes" }
+      ]
+    },
+    {
+      "card_id": "global_crit",
+      "card_type": "global_effect",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "临界协议",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "buff_timed", "target": "all_heroes", "stat": "crit_rate", "value": 100, "duration": 5.0 }
+      ]
+    },
+    {
+      "card_id": "global_strike",
+      "card_type": "global_effect",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "轨道轰炸",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "aoe_damage", "target": "random_enemies", "count": 3, "damage": 200 }
+      ]
+    },
+    {
+      "card_id": "global_levelup",
+      "card_type": "global_effect",
+      "rarity_id": 6,
+      "icon_image_name": "hero_003.png",
+      "default_name": "随机升级",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "level_up", "target": "random_hero", "value": 3 }
+      ]
+    },
+    {
+      "card_id": "global_heal",
+      "card_type": "global_effect",
+      "rarity_id": 4,
+      "icon_image_name": "hero_003.png",
+      "default_name": "纳米蜂群",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "heal_percent", "target": "all_heroes", "value": 20 }
+      ]
+    },
+    {
+      "card_id": "buff_armor",
+      "card_type": "hero_buff",
+      "rarity_id": 3,
+      "icon_image_name": "hero_003.png",
+      "default_name": "复合装甲板",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "any_hero" },
+      "action_list": [
+        { "action": "buff_permanent", "target": "target_hero", "stat": "hp", "value": 10 }
+      ]
+    },
+    {
+      "card_id": "buff_hammer",
+      "card_type": "hero_buff",
+      "rarity_id": 3,
+      "icon_image_name": "hero_003.png",
+      "default_name": "动力战锤",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "any_hero" },
+      "action_list": [
+        { "action": "buff_permanent", "target": "target_hero", "stat": "atk", "value": 5 }
+      ]
+    },
+    {
+      "card_id": "exclusive_cell",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "变异细胞",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "shielder_01" },
+      "action_list": [
+        { "action": "passive_on_hit", "target": "target_hero", "stat": "hp", "value": 10 }
+      ]
+    },
+    {
+      "card_id": "exclusive_thorns",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "刺杀装甲",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "shielder_01" },
+      "action_list": [
+        { "action": "passive_thorns", "target": "target_hero", "percent": 3 }
+      ]
+    }
+  ]
+}

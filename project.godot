@@ -24,6 +24,7 @@ BattleManager="*res://Scripts/Managers/BattleManager.gd"
 DeckManager="*res://Scripts/Managers/DeckManager.gd"
 VFXManager="*res://Scripts/Global/VFXManager.gd"
 SaveManager="*res://Scripts/Global/SaveManager.gd"
+EffectResolver="*res://Scripts/Logic/EffectResolver.gd"
 
 [display]
 

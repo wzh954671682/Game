@@ -2,6 +2,17 @@
   "cards": [
     { "card_id": "shielder_01", "card_type": "hero", "rarity_id": 1, "icon_image_name": "hero_001.png" },
     { "card_id": "gunner_01",  "card_type": "hero", "rarity_id": 4, "icon_image_name": "hero_005.png" },
-    { "card_id": "effect_001", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "火球术" }
+    { "card_id": "effect_001", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "火球术" },
+    { "card_id": "adventure_collapse", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "维度坍塌" },
+    { "card_id": "adventure_freeze", "card_type": "effect", "rarity_id": 4, "icon_image_name": "hero_003.png", "default_name": "寒冰降临" },
+    { "card_id": "adventure_angel", "card_type": "effect", "rarity_id": 6, "icon_image_name": "hero_003.png", "default_name": "天使降临" },
+    { "card_id": "global_crit", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "临界协议" },
+    { "card_id": "global_strike", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "轨道轰炸" },
+    { "card_id": "global_levelup", "card_type": "effect", "rarity_id": 6, "icon_image_name": "hero_003.png", "default_name": "随机升级" },
+    { "card_id": "global_heal", "card_type": "effect", "rarity_id": 4, "icon_image_name": "hero_003.png", "default_name": "纳米蜂群" },
+    { "card_id": "buff_armor", "card_type": "effect", "rarity_id": 3, "icon_image_name": "hero_003.png", "default_name": "复合装甲板" },
+    { "card_id": "buff_hammer", "card_type": "effect", "rarity_id": 3, "icon_image_name": "hero_003.png", "default_name": "动力战锤" },
+    { "card_id": "exclusive_cell", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "变异细胞" },
+    { "card_id": "exclusive_thorns", "card_type": "effect", "rarity_id": 5, "icon_image_name": "hero_003.png", "default_name": "刺杀装甲" }
   ]
 }

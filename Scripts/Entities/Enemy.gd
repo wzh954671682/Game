@@ -21,6 +21,7 @@ signal attack_hit(damage: int)
 
 var current_hp: int = max_health
 var _is_paused: bool = false
+var _is_frozen: bool = false
 var _state: int = State.MOVE
 var _current_frame: int = 0
 var _frame_timer: float = 0.0
@@ -38,6 +39,7 @@ var _frames_deal: Array[Texture2D] = []
 func _ready() -> void:
 	z_index = 0
 	current_hp = max_health
+	add_to_group("enemies")
 	_load_frames()
 	_setup_flash_shader()
 	_setup_hp_bars()
@@ -92,6 +94,9 @@ func _setup_hp_bars() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _is_frozen:
+		return
+
 	# Movement (only in MOVE state when not paused)
 	if _state == State.MOVE and not _is_paused:
 		global_position.y += move_speed * delta
@@ -161,6 +166,22 @@ func set_paused(is_paused: bool) -> void:
 		_apply_state(State.ATTACK)
 	else:
 		_apply_state(State.MOVE)
+
+
+func freeze(duration: float) -> void:
+	if _state == State.DEATH or _is_frozen:
+		return
+	_is_frozen = true
+	var timer := Timer.new()
+	timer.one_shot = true
+	timer.wait_time = duration
+	timer.timeout.connect(_on_thaw)
+	add_child(timer)
+	timer.start()
+
+
+func _on_thaw() -> void:
+	_is_frozen = false
 
 
 func take_damage(amount: int) -> bool:
