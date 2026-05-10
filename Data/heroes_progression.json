@@ -14,6 +14,7 @@
       "base_hp": 1200,
       "base_def": 50,
       "block_count": 3,
+      "attack_range": 1,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     },
@@ -24,6 +25,7 @@
       "base_hp": 600,
       "base_def": 15,
       "block_count": 1,
+      "attack_range": 5,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     },
@@ -34,6 +36,7 @@
       "base_hp": 400,
       "base_def": 10,
       "block_count": 1,
+      "attack_range": 4,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     },
@@ -44,6 +47,7 @@
       "base_hp": 800,
       "base_def": 20,
       "block_count": 0,
+      "attack_range": 1,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     }

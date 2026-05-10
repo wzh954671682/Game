@@ -160,7 +160,7 @@ func _play_entrance_animation() -> void:
 func _on_btn_action_pressed() -> void:
 	_save_rewards()
 	Engine.time_scale = 1.0
-	get_tree().reload_current_scene()
+	get_tree().change_scene_to_file("res://Scenes/MainScene.tscn")
 
 
 func _save_rewards() -> void:

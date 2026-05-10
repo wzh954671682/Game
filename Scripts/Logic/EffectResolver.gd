@@ -162,18 +162,18 @@ func _exec_freeze(action: Dictionary, targets: Array) -> void:
 
 func _exec_heal_full(_action: Dictionary, targets: Array) -> void:
 	for hero in targets:
-		if not is_instance_valid(hero):
+		if not is_instance_valid(hero) or not hero.has_method("heal"):
 			continue
-		hero.current_hp = hero.max_health
+		hero.heal(hero.max_health - hero.current_hp)
 
 
 func _exec_heal_percent(action: Dictionary, targets: Array) -> void:
 	var percent: float = action.get("value", 0.0) / 100.0
 	for hero in targets:
-		if not is_instance_valid(hero):
+		if not is_instance_valid(hero) or not hero.has_method("heal"):
 			continue
-		var heal: int = ceili(hero.max_health * percent)
-		hero.current_hp = mini(hero.current_hp + heal, hero.max_health)
+		var amount: int = ceili(hero.max_health * percent)
+		hero.heal(amount)
 
 
 func _exec_buff_timed(action: Dictionary, targets: Array) -> void:

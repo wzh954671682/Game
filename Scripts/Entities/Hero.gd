@@ -16,6 +16,13 @@ enum State { STANDBY, ATTACK, DEATH }
 @export var attack_power: int = 10
 @export var max_health: int = 100
 @export var frame_interval: float = 0.12
+@export var attack_range: int = 1
+@export var hp_bar_show: bool = true
+@export var hp_bar_y_offset: float = 80.0
+@export var hp_bar_width: float = 80.0
+@export var hp_bar_height: float = 14.0
+@export var hp_bar_bg_color: Color = Color("161616")
+@export var hp_bar_fill_color: Color = Color("4e5831")
 
 var current_hp: int = max_health
 var base_atk: int = 10
@@ -33,6 +40,8 @@ var _timed_buff_timers: Dictionary = {}  ## stat → Timer (限时Buff自动清�
 var _atk_speed_stacks: int = 0
 var _atk_speed_decay_timer: Timer = null
 var _base_frame_interval: float = 0.12
+var _hp_bar_bg: ColorRect = null
+var _hp_bar_fill: ColorRect = null
 
 @onready var block_raycast: RayCast2D = $RayCast2D
 @onready var sprite_2d: Sprite2D = $Sprite2D
@@ -77,6 +86,8 @@ func _ready() -> void:
 	z_index = 0
 	add_to_group("heroes")
 	_setup_flash_shader()
+	_apply_attack_range()
+	_setup_hp_bar()
 	if not hero_id.is_empty():
 		_load_frames()
 		_apply_state(State.STANDBY)
@@ -299,6 +310,7 @@ func init_hero(data: Dictionary) -> void:
 	hero_id = data.get("hero_id", "")
 	current_star = 1
 	max_block_count = data.get("block_count", 1)
+	attack_range = data.get("attack_range", 1)
 	base_atk = data.get("base_atk", 10)
 	base_hp = data.get("base_hp", 100)
 	branch_path = ""
@@ -331,6 +343,7 @@ func star_up() -> void:
 
 	# 恢复 20% 最大生命
 	current_hp = mini(current_hp + int(ceil(max_health * SYNTHESIS_HP_RECOVERY)), max_health)
+	_update_hp_bar()
 
 	_play_evolution_tween()
 
@@ -435,6 +448,43 @@ func _play_evolution_tween() -> void:
 # 拦截系统 (RayCast2D 向上检测, 10 Hz)
 # ============================================================
 
+func _apply_attack_range() -> void:
+	if block_raycast == null:
+		return
+	var cell_size: float = 190.0
+	block_raycast.target_position = Vector2(0, -attack_range * cell_size)
+
+
+func _setup_hp_bar() -> void:
+	if not hp_bar_show:
+		return
+
+	_hp_bar_bg = ColorRect.new()
+	_hp_bar_bg.name = "HPBarBg"
+	_hp_bar_bg.color = hp_bar_bg_color
+	_hp_bar_bg.size = Vector2(hp_bar_width, hp_bar_height)
+	_hp_bar_bg.position = Vector2(-hp_bar_width / 2.0, hp_bar_y_offset)
+	add_child(_hp_bar_bg)
+
+	_hp_bar_fill = ColorRect.new()
+	_hp_bar_fill.name = "HPBarFill"
+	_hp_bar_fill.color = hp_bar_fill_color
+	_hp_bar_fill.size = Vector2(hp_bar_width, hp_bar_height)
+	_hp_bar_fill.position = Vector2(-hp_bar_width / 2.0, hp_bar_y_offset)
+	add_child(_hp_bar_fill)
+
+
+func _update_hp_bar() -> void:
+	if _hp_bar_fill and is_instance_valid(_hp_bar_fill):
+		var ratio: float = float(current_hp) / float(max_health) if max_health > 0 else 0.0
+		_hp_bar_fill.size.x = hp_bar_width * ratio
+
+
+func heal(amount: int) -> void:
+	current_hp = mini(current_hp + amount, max_health)
+	_update_hp_bar()
+
+
 func try_intercept() -> void:
 	if current_blocked_enemies.size() >= max_block_count:
 		return
@@ -506,6 +556,7 @@ func _on_enemy_attack_hit(damage: int, attacker: Node2D = null) -> void:
 					if reflect_dmg > 0:
 						attacker.take_damage(reflect_dmg)
 
+	_update_hp_bar()
 	if current_hp <= 0:
 		current_hp = 0
 		_die()

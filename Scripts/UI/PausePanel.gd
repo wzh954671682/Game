@@ -23,5 +23,5 @@ func _on_continue_pressed() -> void:
 
 
 func _on_home_pressed() -> void:
-	# TODO: return to home scene
-	pass
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://Scenes/MainScene.tscn")

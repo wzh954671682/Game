@@ -700,8 +700,66 @@ func _launch_wave_director() -> void:
 
 func _activate_deck_manager() -> void:
 	DeckManager.start_battle()
-	DeckManager.enqueue_cards(INITIAL_CARD_POOL)
-	print("[BattleTest] DeckManager 战斗状态已激活, 初始卡池 %d 张" % INITIAL_CARD_POOL.size())
+	var pool := _build_initial_card_pool()
+	DeckManager.enqueue_cards(pool)
+	_deploy_squad_heroes()
+	print("[BattleTest] DeckManager 战斗状态已激活, 初始卡池 %d 张" % pool.size())
+
+
+func _build_initial_card_pool() -> Array[String]:
+	var squad: Array = SaveManager.save_data.get("squad", [])
+	var pool: Array[String] = []
+
+	for hero_id in squad:
+		if not hero_id.is_empty():
+			for _j in range(3):
+				pool.append(hero_id)
+
+	# fallback: squad 为空时用默认英雄池
+	if pool.is_empty():
+		pool = [
+			"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
+			"hero_002", "hero_002", "hero_002",
+			"hero_003", "hero_003",
+			"hero_004", "hero_004",
+		]
+
+	# 通用效果卡 (不受阵容影响)
+	pool.append_array([
+		"adventure_freeze", "global_heal", "buff_armor", "exclusive_cell",
+		"exclusive_rapid_fire", "exclusive_stim",
+	])
+
+	return pool
+
+
+func _deploy_squad_heroes() -> void:
+	var squad: Array = SaveManager.save_data.get("squad", [])
+	if squad.is_empty():
+		return
+
+	for i in range(squad.size()):
+		var hero_id: String = squad[i]
+		if hero_id.is_empty():
+			continue
+
+		var template: Dictionary = _hero_templates.get(hero_id, _hero_templates.get(FALLBACK_CARD_ID, {}))
+		if template.is_empty():
+			continue
+
+		# 后排部署: 列 i, 行 4 (靠近城墙), 预留列 4 给手动部署
+		var grid_pos := Vector2i(i, 4)
+
+		var hero: Node2D = _hero_scene.instantiate()
+		hero.name = "Hero_Squad_%d" % i
+		hero.init_hero(template)
+		hero.global_position = GridManager.get_screen_pos(grid_pos)
+		add_child(hero)
+		BattleManager.register_entity(hero, grid_pos)
+		DeckManager.field_hero_count += 1
+		_sync_placed_heroes()
+
+		print("[BattleTest] 阵容英雄预部署: %s → 格子 %s" % [hero_id, grid_pos])
 
 
 # ============================================================
