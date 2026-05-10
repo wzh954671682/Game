@@ -101,7 +101,7 @@
       "r": "orchestrator",
       "c": { "wall_hp": 50 },
       "exp": ["current_stage_id"],
-      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui", "_handle_effect_card", "_build_initial_card_pool", "_deploy_squad_heroes", "_update_hero_dim", "_dim_all_heroes_except", "_set_all_heroes_dimmed"],
+      "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui", "_handle_effect_card", "_build_initial_card_pool", "_collect_effect_card_ids", "_deploy_squad_heroes", "_on_player_level_up", "_build_level_up_cards", "_update_hero_dim", "_dim_all_heroes_except", "_set_all_heroes_dimmed"],
       "note": "Phase18: _build_initial_card_pool从SaveManager读阵容→3x每英雄+效果卡; _deploy_squad_heroes预部署后排(i,4)"
     }
   },

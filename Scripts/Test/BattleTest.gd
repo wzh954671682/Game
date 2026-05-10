@@ -16,14 +16,6 @@ const CARD_SCENE_PATH: String = "res://Scenes/CardUI.tscn"
 const BATTLE_UI_PATH: String = "res://Scenes/UI/BattleUI.tscn"
 const HERO_DATA_PATH: String = "res://Data/heroes_progression.json"
 const BATTLE_MAP_DATA_PATH: String = "res://Data/battle_map.json"
-const INITIAL_CARD_POOL: Array[String] = [
-	"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
-	"hero_002", "hero_002", "hero_002",
-	"hero_003", "hero_003",
-	"hero_004", "hero_004",
-	"adventure_freeze", "global_heal", "buff_armor", "exclusive_cell",
-	"exclusive_rapid_fire", "exclusive_stim",
-]
 const FALLBACK_CARD_ID: String = "shielder_01"
 
 ## Godot 4.6 — Control.LayoutMode enum not exposed to GDScript as named constants.
@@ -762,29 +754,31 @@ func _activate_deck_manager() -> void:
 	print("[BattleTest] DeckManager 战斗状态已激活, 初始卡池 %d 张" % pool.size())
 
 
+func _collect_effect_card_ids() -> Array[String]:
+	var effect_ids: Array[String] = []
+	var cards: Array = DataManager.card_display_config.get("cards", [])
+	for entry in cards:
+		if entry is Dictionary and entry.get("card_type", "") == "effect":
+			var cid: String = entry.get("card_id", "")
+			if not cid.is_empty():
+				effect_ids.append(cid)
+	return effect_ids
+
+
 func _build_initial_card_pool() -> Array[String]:
 	var squad: Array = SaveManager.save_data.get("squad", [])
 	var pool: Array[String] = []
 
 	for hero_id in squad:
 		if not hero_id.is_empty():
-			for _j in range(3):
-				pool.append(hero_id)
+			pool.append(hero_id)
 
-	# fallback: squad 为空时用默认英雄池
 	if pool.is_empty():
-		pool = [
-			"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
-			"hero_002", "hero_002", "hero_002",
-			"hero_003", "hero_003",
-			"hero_004", "hero_004",
-		]
+		pool = ["shielder_01", "hero_002", "hero_003", "hero_004"]
 
-	# 通用效果卡 (不受阵容影响)
-	pool.append_array([
-		"adventure_freeze", "global_heal", "buff_armor", "exclusive_cell",
-		"exclusive_rapid_fire", "exclusive_stim",
-	])
+	var effect_ids: Array[String] = _collect_effect_card_ids()
+	if not effect_ids.is_empty():
+		pool.append(effect_ids.pick_random())
 
 	return pool
 
@@ -839,10 +833,37 @@ func _add_exp(amount: int) -> void:
 		_player_current_exp -= _player_needed_exp
 		_player_level += 1
 		_player_needed_exp = _get_needed_exp(_player_level)
+		_on_player_level_up()
 	if _battle_ui and _battle_ui.has_method("update_exp"):
 		_battle_ui.update_exp(_player_current_exp, _player_needed_exp)
 	if _battle_ui and _battle_ui.has_method("update_battle_level"):
 		_battle_ui.update_battle_level(_player_level)
+
+
+func _on_player_level_up() -> void:
+	var cards: Array[String] = _build_level_up_cards()
+	DeckManager.enqueue_cards(cards)
+	print("[BattleTest] 升级! Lv.%d, 获得 %d 张卡: %s" % [_player_level, cards.size(), ", ".join(cards)])
+
+
+func _build_level_up_cards() -> Array[String]:
+	var squad: Array = SaveManager.save_data.get("squad", [])
+	var hero_pool: Array[String] = []
+	for hero_id in squad:
+		if not hero_id.is_empty():
+			hero_pool.append(hero_id)
+	if hero_pool.is_empty():
+		hero_pool = ["shielder_01", "hero_002", "hero_003", "hero_004"]
+
+	var effect_pool: Array[String] = _collect_effect_card_ids()
+
+	var cards: Array[String] = []
+	for _i in range(3):
+		cards.append(hero_pool.pick_random())
+	for _i in range(2):
+		if not effect_pool.is_empty():
+			cards.append(effect_pool.pick_random())
+	return cards
 
 
 func _get_needed_exp(level: int) -> int:
