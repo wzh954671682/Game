@@ -17,6 +17,8 @@ enum State { STANDBY, ATTACK, DEATH }
 @export var max_health: int = 100
 @export var frame_interval: float = 0.12
 @export var attack_range: int = 1
+@export var heal_percent: float = 0.0
+@export var heal_interval: float = 2.0
 @export var hp_bar_show: bool = true
 @export var hp_bar_y_offset: float = 80.0
 @export var hp_bar_width: float = 80.0
@@ -40,6 +42,12 @@ var _timed_buff_timers: Dictionary = {}  ## stat → Timer (限时Buff自动清�
 var _atk_speed_stacks: int = 0
 var _atk_speed_decay_timer: Timer = null
 var _base_frame_interval: float = 0.12
+var _ranged_target: Node2D = null
+var _projectile_script: Script = null
+var _heal_accumulator: float = 0.0
+var _heal_aura: Sprite2D = null
+
+const HEAL_AURA_PATH: String = "res://Assets/UI/effects/fuzhu_zhouwei.png"
 var _hp_bar_bg: ColorRect = null
 var _hp_bar_fill: ColorRect = null
 
@@ -58,13 +66,20 @@ const MAX_STAR: int = 5
 const STAR_SCALE_STEP: float = 0.1
 const SYNTHESIS_HP_RECOVERY: float = 0.2
 
-# hero_id (模板) → sprite 文件夹编号 映射
-const SPRITE_ID_MAP: Dictionary = {
+# hero_id → sprite 文件前缀映射
+const SPRITE_PREFIX_MAP: Dictionary = {
 	"shielder_01": "001",
-	"hero_002": "001",  # 弓箭手 — 复用盾兵精灵, 后续替换
-	"hero_003": "001",  # 魔法师
-	"hero_004": "001",  # 辅助
+	"hero_002": "001",
+	"hero_003": "001",
+	"hero_004": "001",
 }
+
+const PROJECTILE_SPRITE_MAP: Dictionary = {
+	"hero_002": "res://Assets/UI/effects/zidan_01.png",
+	"hero_003": "res://Assets/UI/effects/zidan_02/",
+}
+
+const PROJECTILE_SPEED: float = 600.0
 
 var _state: int = State.STANDBY
 var _current_frame: int = 0
@@ -88,6 +103,8 @@ func _ready() -> void:
 	_setup_flash_shader()
 	_apply_attack_range()
 	_setup_hp_bar()
+	if heal_percent > 0.0:
+		_setup_heal_aura()
 	if not hero_id.is_empty():
 		_load_frames()
 		_apply_state(State.STANDBY)
@@ -98,7 +115,24 @@ func _physics_process(delta: float) -> void:
 		_update_animation(delta)
 		return
 
-	# 拦截检测 (10 Hz)
+	# 远程英雄: 搜索同列敌人而非拦截
+	if attack_range >= 4:
+		_detect_accumulator += delta
+		if _detect_accumulator >= DETECT_INTERVAL:
+			_detect_accumulator -= DETECT_INTERVAL
+			_ranged_target = _find_ranged_target()
+		_cleanup_dead_enemies()
+		if _ranged_target != null and is_instance_valid(_ranged_target):
+			if _state != State.ATTACK:
+				_apply_state(State.ATTACK)
+		else:
+			_ranged_target = null
+			if _state != State.STANDBY:
+				_apply_state(State.STANDBY)
+		_update_animation(delta)
+		return
+
+	# 近战英雄: 拦截检测
 	_detect_accumulator += delta
 	if _detect_accumulator >= DETECT_INTERVAL:
 		_detect_accumulator -= DETECT_INTERVAL
@@ -106,13 +140,19 @@ func _physics_process(delta: float) -> void:
 
 	_cleanup_dead_enemies()
 
-	# 状态切换: 有拦截目标 → ATTACK, 无目标 → STANDBY
 	if current_blocked_enemies.is_empty():
 		if _state != State.STANDBY:
 			_apply_state(State.STANDBY)
 	else:
 		if _state != State.ATTACK:
 			_apply_state(State.ATTACK)
+
+	# 辅助治疗光环
+	if heal_percent > 0.0:
+		_heal_accumulator += delta
+		if _heal_accumulator >= heal_interval:
+			_heal_accumulator -= heal_interval
+			_heal_nearby_allies()
 
 	_update_animation(delta)
 
@@ -122,16 +162,17 @@ func _physics_process(delta: float) -> void:
 # ============================================================
 
 func _load_frames() -> void:
-	var sprite_id: String = SPRITE_ID_MAP.get(hero_id, hero_id)
-	var base := "res://Assets/Heroes/hero_%s/" % sprite_id
+	var prefix: String = SPRITE_PREFIX_MAP.get(hero_id, hero_id)
+	var folder: String = hero_id if hero_id.begins_with("hero_") else ("hero_" + prefix)
+	var base := "res://Assets/Heroes/%s/" % folder
 	_frames_standby.clear()
 	_frames_attack.clear()
 	_frames_deal.clear()
 	for i in range(4):
 		var idx := "%02d" % i
-		_frames_standby.append(load(base + "hero_%s_standby_%s.png" % [sprite_id, idx]))
-		_frames_attack.append(load(base + "hero_%s_attack_%s.png" % [sprite_id, idx]))
-		_frames_deal.append(load(base + "hero_%s_deal_%s.png" % [sprite_id, idx]))
+		_frames_standby.append(load(base + "hero_%s_standby_%s.png" % [prefix, idx]))
+		_frames_attack.append(load(base + "hero_%s_attack_%s.png" % [prefix, idx]))
+		_frames_deal.append(load(base + "hero_%s_deal_%s.png" % [prefix, idx]))
 
 
 func _setup_flash_shader() -> void:
@@ -207,6 +248,16 @@ func _apply_state(new_state: int) -> void:
 # ============================================================
 
 func _deal_damage_to_target() -> void:
+	# 远程英雄: 发射弹丸
+	if attack_range >= 4:
+		if _ranged_target == null or not is_instance_valid(_ranged_target):
+			return
+		_spawn_projectile(_ranged_target)
+		_play_attack_feedback()
+		_trigger_attack_passives()
+		return
+
+	# 近战英雄: 直接伤害
 	if current_blocked_enemies.is_empty():
 		return
 
@@ -223,6 +274,18 @@ func _deal_damage_to_target() -> void:
 		if killed:
 			current_blocked_enemies.pop_front()
 			VFXManager.hit_stop(0.05)
+
+
+func _spawn_projectile(target: Node2D) -> void:
+	if _projectile_script == null:
+		_projectile_script = load("res://Scripts/Entities/HeroProjectile.gd")
+	var proj := Area2D.new()
+	proj.set_script(_projectile_script)
+	proj.global_position = global_position + Vector2(0, -40)
+	get_parent().add_child(proj)
+	var sprite_path: String = PROJECTILE_SPRITE_MAP.get(hero_id, "")
+	var dmg: int = int(floor(get_final_stats("atk")))
+	proj.setup(sprite_path, target, PROJECTILE_SPEED, dmg)
 
 
 func _trigger_attack_passives() -> void:
@@ -311,6 +374,8 @@ func init_hero(data: Dictionary) -> void:
 	current_star = 1
 	max_block_count = data.get("block_count", 1)
 	attack_range = data.get("attack_range", 1)
+	heal_percent = data.get("heal_percent", 0.0)
+	heal_interval = data.get("heal_interval", 2.0)
 	base_atk = data.get("base_atk", 10)
 	base_hp = data.get("base_hp", 100)
 	branch_path = ""
@@ -455,6 +520,67 @@ func _apply_attack_range() -> void:
 	block_raycast.target_position = Vector2(0, -attack_range * cell_size)
 
 
+func _setup_heal_aura() -> void:
+	if not ResourceLoader.exists(HEAL_AURA_PATH):
+		return
+	_heal_aura = Sprite2D.new()
+	_heal_aura.name = "HealAura"
+	_heal_aura.texture = load(HEAL_AURA_PATH) as Texture2D
+	_heal_aura.centered = true
+	_heal_aura.z_index = -1
+	_heal_aura.visible = false
+	_heal_aura.modulate.a = 0.3
+	add_child(_heal_aura)
+
+
+func _heal_nearby_allies() -> void:
+	var heal_range: float = 190.0
+	var did_heal: bool = false
+	for h in get_tree().get_nodes_in_group("heroes"):
+		var ally := h as Node2D
+		if ally == null or ally == self or not is_instance_valid(ally):
+			continue
+		var diff := ally.global_position - global_position
+		if absf(diff.x) <= heal_range and absf(diff.y) <= heal_range:
+			var amount: int = ceili(ally.get("max_health") * heal_percent / 100.0)
+			if ally.has_method("heal"):
+				ally.heal(amount)
+				did_heal = true
+	if did_heal and _heal_aura and is_instance_valid(_heal_aura):
+		_pulse_heal_aura()
+
+
+func _pulse_heal_aura() -> void:
+	_heal_aura.visible = true
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_SINE)
+	tw.tween_property(_heal_aura, "modulate:a", 0.7, 0.2)
+	tw.tween_property(_heal_aura, "modulate:a", 0.3, 0.3)
+	tw.tween_callback(func():
+		if _heal_aura and is_instance_valid(_heal_aura):
+			_heal_aura.visible = false
+	)
+
+
+func _find_ranged_target() -> Node2D:
+	var range_px: float = attack_range * 190.0
+	var best: Node2D = null
+	var best_y: float = -INF
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var enemy := e as Node2D
+		if enemy == null or not is_instance_valid(enemy):
+			continue
+		var diff := enemy.global_position - global_position
+		if diff.y > 0 or diff.y < -range_px:
+			continue
+		if absf(diff.x) > 95.0:
+			continue
+		if diff.y > best_y:
+			best_y = diff.y
+			best = enemy
+	return best
+
+
 func _setup_hp_bar() -> void:
 	if not hp_bar_show:
 		return
@@ -486,9 +612,6 @@ func heal(amount: int) -> void:
 
 
 func try_intercept() -> void:
-	if current_blocked_enemies.size() >= max_block_count:
-		return
-
 	block_raycast.force_raycast_update()
 
 	if not block_raycast.is_colliding():
@@ -515,6 +638,10 @@ func try_intercept() -> void:
 			enemy.attack_hit.connect(_on_enemy_attack_hit.bind(enemy))
 
 	print("[Intercepted] 英雄拦截怪物: %s (当前拦截数: %d/%d)" % [enemy.name, current_blocked_enemies.size(), max_block_count])
+
+
+func _release_enemy(enemy: Node2D) -> void:
+	current_blocked_enemies.erase(enemy)
 
 
 func _cleanup_dead_enemies() -> void:

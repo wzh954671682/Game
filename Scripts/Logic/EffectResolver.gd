@@ -100,11 +100,11 @@ func _resolve_action_targets(action: Dictionary, resolved: Array) -> Array:
 
 
 func _collect_field_heroes() -> Array:
+	var all := get_tree().get_nodes_in_group("heroes")
 	var heroes: Array = []
-	for pos in BattleManager.grid_occupants:
-		var entity: Node2D = BattleManager.grid_occupants[pos]
-		if is_instance_valid(entity) and entity.has_method("init_hero"):
-			heroes.append(entity)
+	for h in all:
+		if is_instance_valid(h):
+			heroes.append(h)
 	return heroes
 
 

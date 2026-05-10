@@ -89,6 +89,12 @@ func is_active() -> bool:
 	return _active
 
 
+func _resolve_monster_id(raw_id: String) -> String:
+	if raw_id.begins_with("BigMonster_"):
+		return raw_id
+	return raw_id.trim_prefix("monster_")
+
+
 func _spawn(entry: Dictionary) -> void:
 	if _enemy_scene == null:
 		push_error("[WaveDirector] Enemy.tscn 未加载, 无法生成")
@@ -105,7 +111,7 @@ func _spawn(entry: Dictionary) -> void:
 	_spawn_counter += 1
 	enemy.name = "Enemy_%03d" % _spawn_counter
 
-	enemy.set("monster_id", monster_id.trim_prefix("monster_"))
+	enemy.set("monster_id", _resolve_monster_id(monster_id))
 	enemy.set("move_speed", template.get("base_speed", 100.0))
 	var final_hp: int = int(template.get("base_hp", 100) * hp_mult)
 	enemy.set("max_health", final_hp)
@@ -117,6 +123,24 @@ func _spawn(entry: Dictionary) -> void:
 	enemy.set("bypass_intercept", template.get("bypass_intercept", false))
 	enemy.set("explosion_damage", template.get("explosion_damage", 0))
 	enemy.set("explosion_radius", template.get("explosion_radius", 1))
+	enemy.set("is_elite", template.get("is_elite", false))
+	enemy.set("is_boss", template.get("is_boss", false))
+	enemy.set("sprite_folder", template.get("sprite_folder", ""))
+	enemy.set("sprite_prefix", template.get("sprite_prefix", ""))
+	enemy.set("splash_percent", template.get("splash_percent", 0.0))
+	enemy.set("splash_interval", template.get("splash_interval", 2.0))
+	enemy.set("can_revive", template.get("can_revive", false))
+	enemy.set("revive_delay", template.get("revive_delay", 5.0))
+	enemy.set("revive_atk_bonus", template.get("revive_atk_bonus", 0.5))
+	enemy.set("revive_speed_bonus", template.get("revive_speed_bonus", 0.15))
+	enemy.set("boss_detect_range", template.get("boss_detect_range", 0))
+	enemy.set("missile_sprite", template.get("missile_sprite", ""))
+	enemy.set("missile_damage", template.get("missile_damage", 50))
+	enemy.set("missile_interval", template.get("missile_interval", 3.0))
+	enemy.set("missile_speed", template.get("missile_speed", 250.0))
+	var fi: float = template.get("frame_interval", 0.0)
+	if fi > 0.0:
+		enemy.set("frame_interval", fi)
 
 	var spawn_logic: Vector2i = Vector2i(lane, 0)
 	var screen_pos: Vector2 = GridManager.get_screen_pos(spawn_logic)

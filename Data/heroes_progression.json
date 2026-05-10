@@ -46,8 +46,10 @@
       "base_atk": 0,
       "base_hp": 800,
       "base_def": 20,
-      "block_count": 0,
+      "block_count": 1,
       "attack_range": 1,
+      "heal_percent": 3.0,
+      "heal_interval": 2.0,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     }

@@ -1,15 +1,15 @@
 extends CanvasLayer
 
-const PANEL_HOME := 0
+const PANEL_SHOP := 0
 const PANEL_HERO := 1
 const PANEL_BATTLE := 2
 const PANEL_CAMP := 3
 const PANEL_GUILD := 4
 
 @onready var panels: Array[Control] = [
-	$PanelContainer/HomePanel,
+	$PanelContainer/PreloadPanels/ShopPanel,
 	$PanelContainer/HeroPanel,
-	$PanelContainer/PreloadPanels/BattlePanel,
+	$PanelContainer/HomePanel,
 	$PanelContainer/PreloadPanels/CampPanel,
 	$PanelContainer/PreloadPanels/GuildPanel
 ]
@@ -37,7 +37,7 @@ var _hero_list_populated := false
 func _ready() -> void:
 	for i in range(nav_buttons.size()):
 		nav_buttons[i].pressed.connect(_on_nav_button_pressed.bind(i))
-	switch_panel(PANEL_HOME)
+	switch_panel(PANEL_BATTLE)
 
 
 func switch_panel(index: int) -> void:

@@ -51,6 +51,53 @@
       "explosion_damage": 100,
       "explosion_radius": 1,
       "note": "自爆怪 — 死亡3×3爆炸, 巨额城墙伤害"
+    },
+    "BigMonster_01": {
+      "base_hp": 4000,
+      "base_speed": 25.0,
+      "base_wall_damage": 5,
+      "base_attack_damage": 80,
+      "exp_reward": 500,
+      "is_elite": true,
+      "sprite_folder": "BigMonster_01",
+      "sprite_prefix": "monster01",
+      "splash_percent": 30,
+      "splash_interval": 2.0,
+      "note": "精英·裂地石魔 — 重装碾压溅射伤害"
+    },
+    "BigMonster_02": {
+      "base_hp": 2500,
+      "base_speed": 30.0,
+      "base_wall_damage": 3,
+      "base_attack_damage": 40,
+      "exp_reward": 400,
+      "is_elite": true,
+      "sprite_folder": "BigMonster_02",
+      "sprite_prefix": "monster01",
+      "frame_interval": 0.2,
+      "can_revive": true,
+      "revive_delay": 5.0,
+      "revive_atk_bonus": 0.5,
+      "revive_speed_bonus": 0.15,
+      "note": "精英·复仇重生 — 死亡5秒后复活强化"
+    },
+    "boss_01": {
+      "base_hp": 8000,
+      "base_speed": 18.0,
+      "base_wall_damage": 15,
+      "base_attack_damage": 50,
+      "exp_reward": 1000,
+      "is_boss": true,
+      "is_elite": true,
+      "sprite_folder": "boss_01",
+      "sprite_prefix": "monster01",
+      "frame_interval": 0.25,
+      "boss_detect_range": 2,
+      "missile_sprite": "res://Assets/UI/effects/BOSS_01_zidan.png",
+      "missile_damage": 80,
+      "missile_interval": 3.0,
+      "missile_speed": 200.0,
+      "note": "Boss·虚空先驱 — 2格检测三向追踪弹"
     }
   }
 }
