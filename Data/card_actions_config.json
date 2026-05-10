@@ -131,6 +131,78 @@
       "action_list": [
         { "action": "passive_thorns", "target": "target_hero", "percent": 3 }
       ]
+    },
+    {
+      "card_id": "exclusive_rapid_fire",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "迅捷连击",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_002" },
+      "action_list": [
+        { "action": "passive_atk_speed_stack", "target": "target_hero", "max_stacks": 6, "stack_value": 5, "decay_sec": 2.0 }
+      ]
+    },
+    {
+      "card_id": "exclusive_piercing",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "动能贯穿",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_002" },
+      "action_list": [
+        { "action": "passive_piercing", "target": "target_hero", "decay_percent": 30 }
+      ]
+    },
+    {
+      "card_id": "exclusive_mark",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "奥术湮灭",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_003" },
+      "action_list": [
+        { "action": "passive_mark_detonate", "target": "target_hero", "max_marks": 4, "missing_hp_percent": 15 }
+      ]
+    },
+    {
+      "card_id": "exclusive_flame",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "焦土炼狱",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_003" },
+      "action_list": [
+        { "action": "passive_burning_ground", "target": "target_hero", "duration": 3.0, "tick_interval": 0.5, "damage_percent": 50 }
+      ]
+    },
+    {
+      "card_id": "exclusive_triage",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "战地分诊",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_004" },
+      "action_list": [
+        { "action": "passive_triage_heal", "target": "target_hero", "low_hp_threshold": 50, "heal_multiplier": 2.0 }
+      ]
+    },
+    {
+      "card_id": "exclusive_stim",
+      "card_type": "hero_exclusive",
+      "rarity_id": 5,
+      "icon_image_name": "hero_003.png",
+      "default_name": "激素注入",
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "specific_hero", "hero_id": "hero_004" },
+      "action_list": [
+        { "action": "passive_heal_buff", "target": "target_hero", "buff_stat": "atk", "buff_value": 15, "buff_duration": 3.0 }
+      ]
     }
   ]
 }

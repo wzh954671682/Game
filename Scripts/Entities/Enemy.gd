@@ -18,6 +18,10 @@ signal attack_hit(damage: int)
 @export var is_elite: bool = false
 @export var is_boss: bool = false
 @export var exp_reward: int = 0
+@export var can_strafe: bool = false
+@export var bypass_intercept: bool = false
+@export var explosion_damage: int = 0
+@export var explosion_radius: int = 1
 
 var current_hp: int = max_health
 var _is_paused: bool = false
@@ -26,6 +30,12 @@ var _state: int = State.MOVE
 var _current_frame: int = 0
 var _frame_timer: float = 0.0
 var _attack_hit_emitted: bool = false
+var _strafe_timer: float = 0.0
+var _strafe_direction: int = 0
+var _strafe_target_x: float = 0.0
+var _is_strafing: bool = false
+const STRAFE_INTERVAL: float = 1.5
+const STRAFE_SPEED: float = 150.0
 
 var _frames_move: Array[Texture2D] = []
 var _frames_attack: Array[Texture2D] = []
@@ -100,12 +110,32 @@ func _physics_process(delta: float) -> void:
 	# Movement (only in MOVE state when not paused)
 	if _state == State.MOVE and not _is_paused:
 		global_position.y += move_speed * delta
+		if can_strafe:
+			_update_strafe(delta)
 		if global_position.y > _bottom_boundary():
 			GameEvents.wall_hit.emit(wall_damage)
 			GameEvents.enemy_died.emit(global_position, 0)
 			queue_free()
 
 	_update_animation(delta)
+
+
+func _update_strafe(delta: float) -> void:
+	_strafe_timer -= delta
+	if _strafe_timer <= 0.0:
+		_strafe_timer = STRAFE_INTERVAL
+		var logic_pos: Vector2i = GridManager.get_logic_pos(global_position)
+		var new_col: int = clampi(logic_pos.x + (1 if randi() % 2 == 0 else -1), 0, 4)
+		_strafe_target_x = GridManager.get_screen_pos(Vector2i(new_col, logic_pos.y)).x
+		_is_strafing = true
+
+	if _is_strafing:
+		var diff: float = _strafe_target_x - global_position.x
+		if absf(diff) < 3.0:
+			global_position.x = _strafe_target_x
+			_is_strafing = false
+		else:
+			global_position.x += signf(diff) * STRAFE_SPEED * delta
 
 
 func _update_animation(delta: float) -> void:
@@ -219,6 +249,9 @@ func _die() -> void:
 	monitoring = false
 	monitorable = false
 
+	if explosion_damage > 0:
+		_trigger_explosion()
+
 	GameEvents.enemy_died.emit(global_position, exp_reward)
 	_apply_state(State.DEATH)
 
@@ -229,6 +262,18 @@ func _die() -> void:
 		death_tween.tween_property(_sprite, "scale", Vector2(0.2, 0.2), 0.5)\
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 		death_tween.tween_property(_sprite, "position:y", _sprite.position.y - 40, 0.5)
+
+
+func _trigger_explosion() -> void:
+	var radius_px: float = explosion_radius * 190.0
+	var heroes = get_tree().get_nodes_in_group("heroes")
+	for hero in heroes:
+		if not is_instance_valid(hero):
+			continue
+		var dist: float = global_position.distance_to(hero.global_position)
+		if dist <= radius_px and hero.has_method("take_damage"):
+			hero.take_damage(explosion_damage)
+	VFXManager.hit_stop(0.08)
 
 
 func _on_death_animation_finished() -> void:

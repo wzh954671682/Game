@@ -18,8 +18,11 @@ const HERO_DATA_PATH: String = "res://Data/heroes_progression.json"
 const BATTLE_MAP_DATA_PATH: String = "res://Data/battle_map.json"
 const INITIAL_CARD_POOL: Array[String] = [
 	"shielder_01", "shielder_01", "shielder_01", "shielder_01", "shielder_01",
-	"gunner_01", "gunner_01", "gunner_01", "gunner_01", "gunner_01",
+	"hero_002", "hero_002", "hero_002",
+	"hero_003", "hero_003",
+	"hero_004", "hero_004",
 	"adventure_freeze", "global_heal", "buff_armor", "exclusive_cell",
+	"exclusive_rapid_fire", "exclusive_stim",
 ]
 const FALLBACK_CARD_ID: String = "shielder_01"
 

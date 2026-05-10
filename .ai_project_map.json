@@ -25,27 +25,28 @@
   "gd": {
     "Scripts/Logic/EffectResolver.gd": {
       "ext": "Node",
-      "m": ["get_card_data", "card_type_from_id", "resolve_targets", "execute_card"],
-      "note": "卡牌效果解析器: 目标校验+action_list分发, 10种action类型"
+      "m": ["get_card_data", "card_type_from_id", "resolve_targets", "execute_card", "_exec_passive_atk_speed_stack", "_exec_passive_stub"],
+      "note": "卡牌效果解析器: 目标校验+action_list分发, 16种action类型(6种Phase3占位)"
     },
     "Scripts/Entities/Hero.gd": {
       "ext": "Node2D",
       "fsm": ["STANDBY", "ATTACK", "DEATH"],
-      "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval"],
+      "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval", "_atk_speed_stacks"],
       "sig": [],
-      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive"],
+      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive", "_trigger_attack_passives", "_on_atk_speed_decay", "_on_enemy_attack_hit"],
       "stars": { "max": 5, "mult": [1.0, 1.5, 2.2, 3.0, 4.5], "scale": 0.1, "heal": 0.2 },
+      "sprites": { "shielder_01": "001", "hero_002": "001", "hero_003": "001", "hero_004": "001" },
       "z": { "default": 0 },
-      "note": "Phase15.5: get_final_stats(stat)→(base+meta)*(1+star_bonus)*(1+buff_bonus)"
+      "note": "Phase15.5: get_final_stats; Phase2e: atk_speed_stack被动(攻速叠层+衰减计时器)"
     },
     "Scripts/Entities/Enemy.gd": {
       "ext": "Area2D",
       "fsm": ["MOVE", "ATTACK", "DEATH"],
-      "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval", "is_elite", "is_boss"],
+      "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval", "is_elite", "is_boss", "can_strafe", "bypass_intercept", "explosion_damage", "explosion_radius"],
       "sig": ["attack_hit"],
-      "m": ["take_damage", "set_paused", "freeze", "_setup_hp_bars"],
+      "m": ["take_damage", "set_paused", "freeze", "_setup_hp_bars", "_update_strafe", "_trigger_explosion"],
       "z": { "default": 0 },
-      "note": "Phase15.5: 双层残影HPBar(HPBar+HPBarRed), elite/boss可见, take_damage瞬扣+Tween0.4s追平"
+      "note": "6种小型怪: strafe(刺客横移), bypass(蝙蝠穿怪), explosion(自爆3×3); Phase15.5: HPBar双层残影"
     },
     "Scripts/Global/GameEvents.gd": {
       "ext": "Node",
@@ -69,10 +70,11 @@
     "Scripts/Logic/WaveDirector.gd": {
       "ext": "Node",
       "r": "wave",
-      "m": ["load_stage_script", "get_map_id", "is_last_wave", "is_active"],
+      "m": ["load_stage_script", "get_map_id", "is_last_wave", "is_active", "_spawn"],
       "exp": [],
       "sig": [],
-      "c": {}
+      "c": {},
+      "note": "spawn传递全部模板属性: strafe/bypass/explosion"
     },
     "Scripts/Managers/DeckManager.gd": {
       "ext": "Node",
@@ -115,7 +117,7 @@
   "res": {
     "hero": {
       "path": "Assets/Heroes/hero_{sid}/hero_{sid}_{anim}_{idx}.png",
-      "idmap": { "shielder_01": "001", "gunner_01": "001" },
+      "idmap": { "shielder_01": "001", "hero_002": "001", "hero_003": "001", "hero_004": "001" },
       "anims": { "standby": 4, "attack": 4, "deal": 4 },
       "list": ["hero_001"]
     },
@@ -123,7 +125,7 @@
       "path": "Assets/Monsters/monster_{mid}/monster{mid}_{anim}_{idx}.png",
       "mid": "01",
       "anims": { "move": 4, "attack": 4, "deal": 4 },
-      "list": ["monster_01"]
+      "list": ["monster_01", "monster_02", "monster_03", "monster_04", "monster_05", "monster_06"]
     },
     "shader": { "hit_flash": "Assets/Shaders/hit_flash.gdshader" },
     "ui": { "wall": "Assets/UI/wall_001.png" },

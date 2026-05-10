@@ -113,6 +113,10 @@ func _spawn(entry: Dictionary) -> void:
 	enemy.set("wall_damage", template.get("base_wall_damage", 1))
 	enemy.set("attack_damage", template.get("base_attack_damage", 5))
 	enemy.set("exp_reward", template.get("exp_reward", 0))
+	enemy.set("can_strafe", template.get("can_strafe", false))
+	enemy.set("bypass_intercept", template.get("bypass_intercept", false))
+	enemy.set("explosion_damage", template.get("explosion_damage", 0))
+	enemy.set("explosion_radius", template.get("explosion_radius", 1))
 
 	var spawn_logic: Vector2i = Vector2i(lane, 0)
 	var screen_pos: Vector2 = GridManager.get_screen_pos(spawn_logic)

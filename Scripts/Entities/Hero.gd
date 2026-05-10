@@ -30,6 +30,9 @@ var _meta_bonuses: Dictionary = {}   ## 装备/天赋固定值加成, e.g. {"atk
 var _buff_bonuses: Dictionary = {}   ## 战斗 Buff 百分比加成, e.g. {"atk": 0.15, "hp": 0.0}
 var passive_effects: Array[Dictionary] = []  ## 被动效果列表
 var _timed_buff_timers: Dictionary = {}  ## stat → Timer (限时Buff自动清理)
+var _atk_speed_stacks: int = 0
+var _atk_speed_decay_timer: Timer = null
+var _base_frame_interval: float = 0.12
 
 @onready var block_raycast: RayCast2D = $RayCast2D
 @onready var sprite_2d: Sprite2D = $Sprite2D
@@ -49,7 +52,9 @@ const SYNTHESIS_HP_RECOVERY: float = 0.2
 # hero_id (模板) → sprite 文件夹编号 映射
 const SPRITE_ID_MAP: Dictionary = {
 	"shielder_01": "001",
-	"gunner_01": "001",  # 机枪手暂无独立资源, 复用盾兵
+	"hero_002": "001",  # 弓箭手 — 复用盾兵精灵, 后续替换
+	"hero_003": "001",  # 魔法师
+	"hero_004": "001",  # 辅助
 }
 
 var _state: int = State.STANDBY
@@ -70,6 +75,7 @@ var _frames_deal: Array[Texture2D] = []
 
 func _ready() -> void:
 	z_index = 0
+	add_to_group("heroes")
 	_setup_flash_shader()
 	if not hero_id.is_empty():
 		_load_frames()
@@ -202,9 +208,35 @@ func _deal_damage_to_target() -> void:
 		var dmg: int = int(floor(get_final_stats("atk")))
 		var killed: bool = target.take_damage(dmg)
 		_play_attack_feedback()
+		_trigger_attack_passives()
 		if killed:
 			current_blocked_enemies.pop_front()
 			VFXManager.hit_stop(0.05)
+
+
+func _trigger_attack_passives() -> void:
+	for passive in passive_effects:
+		match passive.get("type", ""):
+			"atk_speed_stack":
+				var max_stacks: int = passive.get("max_stacks", 6)
+				var stack_val: float = passive.get("stack_value", 5.0)
+				var decay: float = passive.get("decay_sec", 2.0)
+				_atk_speed_stacks = mini(_atk_speed_stacks + 1, max_stacks)
+				frame_interval = _base_frame_interval * (1.0 - _atk_speed_stacks * stack_val / 100.0)
+				if _atk_speed_decay_timer and is_instance_valid(_atk_speed_decay_timer):
+					_atk_speed_decay_timer.start(decay)
+				else:
+					_atk_speed_decay_timer = Timer.new()
+					_atk_speed_decay_timer.one_shot = true
+					_atk_speed_decay_timer.wait_time = decay
+					_atk_speed_decay_timer.timeout.connect(_on_atk_speed_decay)
+					add_child(_atk_speed_decay_timer)
+					_atk_speed_decay_timer.start()
+
+
+func _on_atk_speed_decay() -> void:
+	_atk_speed_stacks = 0
+	frame_interval = _base_frame_interval
 
 
 func _play_attack_feedback() -> void:
@@ -274,6 +306,7 @@ func init_hero(data: Dictionary) -> void:
 
 	_apply_star_stats()
 	current_hp = max_health
+	_base_frame_interval = frame_interval
 
 	# 如果已经在场景树中 (编辑器放置的英雄), 立即加载帧
 	if is_inside_tree():
@@ -419,6 +452,10 @@ func try_intercept() -> void:
 	if current_blocked_enemies.has(enemy):
 		return
 
+	# 蝙蝠等飞行单位绕过拦截
+	if enemy.get("bypass_intercept") == true:
+		return
+
 	current_blocked_enemies.append(enemy)
 
 	if enemy.has_method("set_paused"):
@@ -436,6 +473,16 @@ func _cleanup_dead_enemies() -> void:
 		if not is_instance_valid(current_blocked_enemies[i]):
 			current_blocked_enemies.remove_at(i)
 		i -= 1
+
+
+func take_damage(amount: int) -> void:
+	if _state == State.DEATH:
+		return
+	current_hp -= amount
+	_play_hit_flash()
+	if current_hp <= 0:
+		current_hp = 0
+		_die()
 
 
 func _on_enemy_attack_hit(damage: int, attacker: Node2D = null) -> void:

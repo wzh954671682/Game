@@ -18,12 +18,32 @@
       "shard_step_multiplier": 5
     },
     {
-      "hero_id": "gunner_01",
-      "name": "机枪手",
-      "base_atk": 100,
-      "base_hp": 500,
+      "hero_id": "hero_002",
+      "name": "弓箭手",
+      "base_atk": 60,
+      "base_hp": 600,
+      "base_def": 15,
+      "block_count": 1,
+      "shard_base_value": 10,
+      "shard_step_multiplier": 5
+    },
+    {
+      "hero_id": "hero_003",
+      "name": "魔法师",
+      "base_atk": 120,
+      "base_hp": 400,
       "base_def": 10,
       "block_count": 1,
+      "shard_base_value": 10,
+      "shard_step_multiplier": 5
+    },
+    {
+      "hero_id": "hero_004",
+      "name": "辅助",
+      "base_atk": 0,
+      "base_hp": 800,
+      "base_def": 20,
+      "block_count": 0,
       "shard_base_value": 10,
       "shard_step_multiplier": 5
     }

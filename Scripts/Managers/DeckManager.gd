@@ -139,4 +139,4 @@ func _load_rescue_package() -> Array[String]:
 
 
 func _fallback_rescue_package() -> Array[String]:
-	return ["shielder_01", "shielder_01", "gunner_01", "gunner_01", "gunner_01"]
+	return ["shielder_01", "shielder_01", "shielder_01", "hero_002", "hero_002"]

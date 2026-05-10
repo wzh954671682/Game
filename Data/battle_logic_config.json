@@ -5,7 +5,7 @@
     "cooldown_sec": 10.0,
     "package_content": [
       {"hero_id": "shielder_01", "count": 2},
-      {"hero_id": "gunner_01", "count": 3}
+      {"hero_id": "hero_002", "count": 3}
     ]
   },
   "star_challenge_rewards": {
