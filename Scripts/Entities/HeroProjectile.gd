@@ -11,6 +11,10 @@ var _frame_index: int = 0
 var _frame_timer: float = 0.0
 var _frame_interval: float = 0.08
 
+## 穿透: 0.0 = 不穿透; >0 = 每穿透一个伤害衰减比例 (如 0.3 = 30%)
+var _pierce_decay: float = 0.0
+var _hit_targets: Array[Node] = []
+
 
 func _init() -> void:
 	collision_layer = 1
@@ -33,9 +37,13 @@ func _ready() -> void:
 	body_entered.connect(_on_hit)
 
 
-func setup(sprite_path: String, _target: Node2D, speed: float, damage: int) -> void:
+var _is_crit: bool = false
+
+func setup(sprite_path: String, _target: Node2D, speed: float, damage: int, pierce_decay: float = 0.0, is_crit: bool = false) -> void:
 	_speed = speed
 	_damage = damage
+	_pierce_decay = pierce_decay
+	_is_crit = is_crit
 	if sprite_path.ends_with("/"):
 		_load_sequence_frames(sprite_path)
 	else:
@@ -89,5 +97,15 @@ func _on_hit(target: Node) -> void:
 		return
 	if not is_instance_valid(target) or not target.has_method("take_damage"):
 		return
-	target.take_damage(_damage)
-	queue_free()
+	if target in _hit_targets:
+		return
+
+	target.take_damage(_damage, _is_crit)
+	_hit_targets.append(target)
+
+	if _pierce_decay > 0.0:
+		_damage = int(ceil(_damage * (1.0 - _pierce_decay)))
+		if _damage <= 0:
+			queue_free()
+	else:
+		queue_free()

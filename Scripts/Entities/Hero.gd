@@ -19,12 +19,13 @@ enum State { STANDBY, ATTACK, DEATH }
 @export var attack_range: int = 1
 @export var heal_percent: float = 0.0
 @export var heal_interval: float = 2.0
+@export var heal_aura_scale: float = 0.6
 @export var hp_bar_show: bool = true
 @export var hp_bar_y_offset: float = 80.0
 @export var hp_bar_width: float = 80.0
 @export var hp_bar_height: float = 14.0
 @export var hp_bar_bg_color: Color = Color("161616")
-@export var hp_bar_fill_color: Color = Color("4e5831")
+@export var hp_bar_fill_color: Color = Color("fdd211")
 
 var current_hp: int = max_health
 var base_atk: int = 10
@@ -101,6 +102,7 @@ func _ready() -> void:
 	z_index = 0
 	add_to_group("heroes")
 	_setup_flash_shader()
+	_setup_hitbox()
 	_apply_attack_range()
 	_setup_hp_bar()
 	if heal_percent > 0.0:
@@ -173,6 +175,20 @@ func _load_frames() -> void:
 		_frames_standby.append(load(base + "hero_%s_standby_%s.png" % [prefix, idx]))
 		_frames_attack.append(load(base + "hero_%s_attack_%s.png" % [prefix, idx]))
 		_frames_deal.append(load(base + "hero_%s_deal_%s.png" % [prefix, idx]))
+
+
+func _setup_hitbox() -> void:
+	var hitbox := Area2D.new()
+	hitbox.name = "Hitbox"
+	hitbox.collision_layer = 1
+	hitbox.collision_mask = 0
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(80, 120)
+	shape.shape = rect
+	hitbox.add_child(shape)
+	hitbox.position = Vector2(0, -20)
+	add_child(hitbox)
 
 
 func _setup_flash_shader() -> void:
@@ -254,7 +270,7 @@ func _deal_damage_to_target() -> void:
 			return
 		_spawn_projectile(_ranged_target)
 		_play_attack_feedback()
-		_trigger_attack_passives()
+		_trigger_attack_passives(_ranged_target)
 		return
 
 	# 近战英雄: 直接伤害
@@ -268,9 +284,12 @@ func _deal_damage_to_target() -> void:
 
 	if target.has_method("take_damage"):
 		var dmg: int = int(floor(get_final_stats("atk")))
-		var killed: bool = target.take_damage(dmg)
+		var is_crit: bool = _roll_crit()
+		if is_crit:
+			dmg = int(ceil(dmg * 2.0))
+		var killed: bool = target.take_damage(dmg, is_crit)
 		_play_attack_feedback()
-		_trigger_attack_passives()
+		_trigger_attack_passives(target)
 		if killed:
 			current_blocked_enemies.pop_front()
 			VFXManager.hit_stop(0.05)
@@ -285,32 +304,129 @@ func _spawn_projectile(target: Node2D) -> void:
 	get_parent().add_child(proj)
 	var sprite_path: String = PROJECTILE_SPRITE_MAP.get(hero_id, "")
 	var dmg: int = int(floor(get_final_stats("atk")))
-	proj.setup(sprite_path, target, PROJECTILE_SPEED, dmg)
+	var is_crit: bool = _roll_crit()
+	if is_crit:
+		dmg = int(ceil(dmg * 2.0))
+	var pierce: float = _get_pierce_decay()
+	proj.setup(sprite_path, target, PROJECTILE_SPEED, dmg, pierce, is_crit)
+
+func _get_pierce_decay() -> float:
+	for p in passive_effects:
+		if p.get("type", "") == "passive_piercing":
+			var raw: Dictionary = p.get("raw", {})
+			return raw.get("decay_percent", 30.0) / 100.0
+	return 0.0
 
 
-func _trigger_attack_passives() -> void:
+func _trigger_attack_passives(target: Node2D = null) -> void:
 	for passive in passive_effects:
 		match passive.get("type", ""):
 			"atk_speed_stack":
-				var max_stacks: int = passive.get("max_stacks", 6)
-				var stack_val: float = passive.get("stack_value", 5.0)
-				var decay: float = passive.get("decay_sec", 2.0)
-				_atk_speed_stacks = mini(_atk_speed_stacks + 1, max_stacks)
-				frame_interval = _base_frame_interval * (1.0 - _atk_speed_stacks * stack_val / 100.0)
-				if _atk_speed_decay_timer and is_instance_valid(_atk_speed_decay_timer):
-					_atk_speed_decay_timer.start(decay)
-				else:
-					_atk_speed_decay_timer = Timer.new()
-					_atk_speed_decay_timer.one_shot = true
-					_atk_speed_decay_timer.wait_time = decay
-					_atk_speed_decay_timer.timeout.connect(_on_atk_speed_decay)
-					add_child(_atk_speed_decay_timer)
-					_atk_speed_decay_timer.start()
+				_trigger_atk_speed_stack(passive)
+			"passive_mark_detonate":
+				if target and is_instance_valid(target) and target.has_method("add_mark"):
+					_trigger_mark_detonate(passive, target)
+			"passive_burning_ground":
+				if target and is_instance_valid(target):
+					_spawn_burning_ground(passive, target.global_position)
+
+
+func _trigger_atk_speed_stack(passive: Dictionary) -> void:
+	var max_stacks: int = passive.get("max_stacks", 6)
+	var stack_val: float = passive.get("stack_value", 5.0)
+	var decay: float = passive.get("decay_sec", 2.0)
+	_atk_speed_stacks = mini(_atk_speed_stacks + 1, max_stacks)
+	frame_interval = _base_frame_interval * (1.0 - _atk_speed_stacks * stack_val / 100.0)
+	print("[Hero] 攻速叠层: %d/%d  帧间隔=%.4f" % [_atk_speed_stacks, max_stacks, frame_interval])
+	if _atk_speed_decay_timer and is_instance_valid(_atk_speed_decay_timer):
+		_atk_speed_decay_timer.start(decay)
+	else:
+		_atk_speed_decay_timer = Timer.new()
+		_atk_speed_decay_timer.one_shot = true
+		_atk_speed_decay_timer.wait_time = decay
+		_atk_speed_decay_timer.timeout.connect(_on_atk_speed_decay)
+		add_child(_atk_speed_decay_timer)
+		_atk_speed_decay_timer.start()
+
+
+func _trigger_mark_detonate(passive: Dictionary, target: Node2D) -> void:
+	var max_marks: int = passive.get("raw", {}).get("max_marks", 4)
+	var missing_hp_pct: float = passive.get("raw", {}).get("missing_hp_percent", 15.0)
+	var current: int = target.add_mark(hero_id)
+	if current >= max_marks:
+		target.clear_marks(hero_id)
+		var missing_hp: int = target.max_health - target.current_hp
+		var detonate_dmg: int = ceili(missing_hp * missing_hp_pct / 100.0)
+		if detonate_dmg > 0:
+			target.take_damage(detonate_dmg, true)
+			print("[Hero] 奥术湮灭引爆! 已损HP=%d → %d 伤害" % [missing_hp, detonate_dmg])
+
+
+func _spawn_burning_ground(passive: Dictionary, pos: Vector2) -> void:
+	var raw: Dictionary = passive.get("raw", {})
+	var duration: float = raw.get("duration", 3.0)
+	var tick_interval: float = raw.get("tick_interval", 0.5)
+	var damage_pct: float = raw.get("damage_percent", 50.0)
+	var tick_dmg: int = ceili(get_final_stats("atk") * damage_pct / 100.0)
+
+	var burn := Area2D.new()
+	burn.name = "BurningGround"
+	burn.collision_layer = 1
+	burn.collision_mask = 1
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(150, 150)
+	shape.shape = rect
+	burn.add_child(shape)
+	burn.global_position = pos
+	get_parent().add_child(burn)
+
+	var elapsed: float = 0.0
+	var tick_acc: float = 0.0
+	var enemies_inside: Array[Node2D] = []
+
+	burn.body_entered.connect(func(b: Node2D):
+		if b.is_in_group("enemies") and not enemies_inside.has(b):
+			enemies_inside.append(b)
+	)
+	burn.body_exited.connect(func(b: Node2D):
+		enemies_inside.erase(b)
+	)
+
+	var timer := Timer.new()
+	timer.wait_time = 0.1
+	timer.name = "BurnTickTimer"
+	burn.add_child(timer)
+	timer.timeout.connect(func():
+		elapsed += 0.1
+		tick_acc += 0.1
+		if elapsed >= duration:
+			burn.queue_free()
+			return
+		if tick_acc >= tick_interval:
+			tick_acc -= tick_interval
+			var to_remove: Array[Node2D] = []
+			for e in enemies_inside:
+				if not is_instance_valid(e) or not e.has_method("take_damage"):
+					to_remove.append(e)
+					continue
+				e.take_damage(tick_dmg)
+			for e in to_remove:
+				enemies_inside.erase(e)
+	)
+	timer.start()
 
 
 func _on_atk_speed_decay() -> void:
 	_atk_speed_stacks = 0
 	frame_interval = _base_frame_interval
+
+
+func _roll_crit() -> bool:
+	var rate: float = get_final_stats("crit_rate")
+	if rate <= 0.0:
+		return false
+	return randf() < rate / 100.0
 
 
 func set_dimmed(dimmed: bool) -> void:
@@ -380,6 +496,9 @@ func init_hero(data: Dictionary) -> void:
 	attack_range = data.get("attack_range", 1)
 	heal_percent = data.get("heal_percent", 0.0)
 	heal_interval = data.get("heal_interval", 2.0)
+	if heal_percent > 0.0:
+		_setup_heal_aura()
+		_heal_accumulator = -heal_interval
 	base_atk = data.get("base_atk", 10)
 	base_hp = data.get("base_hp", 100)
 	branch_path = ""
@@ -477,6 +596,8 @@ func get_final_stats(stat_name: String) -> float:
 		"atk_speed":
 			var fi: float = _config_data.get("base_frame_interval", frame_interval)
 			base = 1.0 / fi if fi > 0.0 else 1.0 / frame_interval
+		"crit_rate":
+			base = float(_config_data.get("base_crit_rate", 0.0))
 		_:
 			return 0.0
 
@@ -531,9 +652,10 @@ func _setup_heal_aura() -> void:
 	_heal_aura.name = "HealAura"
 	_heal_aura.texture = load(HEAL_AURA_PATH) as Texture2D
 	_heal_aura.centered = true
+	_heal_aura.scale = Vector2(heal_aura_scale, heal_aura_scale)
 	_heal_aura.z_index = -1
 	_heal_aura.visible = false
-	_heal_aura.modulate.a = 0.3
+	_heal_aura.modulate.a = 0.0
 	add_child(_heal_aura)
 
 
@@ -548,8 +670,27 @@ func _heal_nearby_allies() -> void:
 		if absf(diff.x) <= heal_range and absf(diff.y) <= heal_range:
 			var amount: int = ceili(ally.get("max_health") * heal_percent / 100.0)
 			if ally.has_method("heal"):
+				# triage_heal: 目标HP低于阈值时翻倍
+				for p in passive_effects:
+					if p.get("type", "") == "passive_triage_heal":
+						var raw: Dictionary = p.get("raw", {})
+						var threshold: float = raw.get("low_hp_threshold", 50.0)
+						var mult: float = raw.get("heal_multiplier", 2.0)
+						if float(ally.current_hp) / float(ally.max_health) * 100.0 < threshold:
+							amount = int(ceil(amount * mult))
+						break
 				ally.heal(amount)
 				did_heal = true
+				# heal_buff: 治疗时给目标加攻
+				for p in passive_effects:
+					if p.get("type", "") == "passive_heal_buff":
+						var raw: Dictionary = p.get("raw", {})
+						var buff_stat: String = raw.get("buff_stat", "atk")
+						var buff_val: float = raw.get("buff_value", 15.0)
+						var buff_dur: float = raw.get("buff_duration", 3.0)
+						if ally.has_method("apply_timed_buff"):
+							ally.apply_timed_buff(buff_stat, buff_val, buff_dur)
+						break
 	if did_heal and _heal_aura and is_instance_valid(_heal_aura):
 		_pulse_heal_aura()
 

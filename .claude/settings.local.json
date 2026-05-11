@@ -38,7 +38,21 @@
       "Bash(grep -v '.import$')",
       "Bash(magick --version)",
       "Bash(python \"F:/tmp/flip_images.py\")",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(python3 -c \"from PIL import Image; img=Image.open\\('f:/GAME-demo/game-demo-w/Assets/UI/effects/fuzhu_zhouwei.png'\\); print\\(img.size\\)\")",
+      "Bash(python -m pip install Pillow)",
+      "Bash(godot --headless --quit)",
+      "Bash(python3 -c ' *)",
+      "Read(//c/Program Files/**)",
+      "Read(//c//**)",
+      "Bash(find /c/ /d/ /e/ /f/ -maxdepth 4 -name \"Godot*\" -type f 2>/dev/null | head -10)",
+      "Bash(where godot *)",
+      "Read(//f/GAME-demo/**)",
+      "Bash(\"f:/GAME-demo/Godot_v4.6.2-stable_win64.exe\" --headless --path \"f:/GAME-demo/game-demo-w\" --export-release \"Windows Desktop\")",
+      "Bash(mkdir -p \"C:/Users/34445/AppData/Roaming/Godot/export_templates/4.6.2.stable\")",
+      "Bash(curl -L -o \"C:/Users/34445/AppData/Roaming/Godot/export_templates/4.6.2.stable/export_templates.zip\" \"https://github.com/godotengine/godot/releases/download/4.6.2-stable/Godot_v4.6.2-stable_export_templates.tpz\")",
+      "Bash(unzip -o export_templates.zip)",
+      "Bash(curl -L -o \"C:/Users/34445/AppData/Roaming/Godot/export_templates/4.6.2.stable/templates.zip\" \"https://github.com/godotengine/godot/releases/download/4.6.2-stable/Godot_v4.6.2-stable_export_templates.tpz\")"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts",

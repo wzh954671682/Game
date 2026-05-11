@@ -162,15 +162,16 @@ func show_damage_text(world_pos: Vector2, value: int, is_crit: bool = false) -> 
 	if _popup_frame_count > POPUP_OFFSET_THRESHOLD:
 		screen_pos += Vector2(randf_range(-30.0, 30.0), randf_range(-20.0, 20.0))
 
-	var font_size: int = 54 if is_crit else 36
-	var font_color: Color = Color.YELLOW if is_crit else Color.WHITE
+	var font_size: int = 64 if is_crit else 40
+	var font_color: Color = Color(0.992, 0.824, 0.067) if is_crit else Color.WHITE
+	var outline_size: int = 6 if is_crit else 3
 
 	var label := Label.new()
 	label.text = str(value)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", font_color)
 	label.add_theme_color_override("font_outline_color", Color.BLACK)
-	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_constant_override("outline_size", outline_size + 1)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.position = screen_pos - Vector2(-90, 50)

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c1gmpfdautgsa"
-path="res://.godot/imported/monster01_attack_03.png-94b221c859f0c9550eeee584f0529475.ctex"
+uid="uid://ty5t15i35y77"
+path="res://.godot/imported/xiaoguo.png-99eb440a4c3d26f74703843ce52a46a2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Monsters/boss_01/monster01_attack_03.png"
-dest_files=["res://.godot/imported/monster01_attack_03.png-94b221c859f0c9550eeee584f0529475.ctex"]
+source_file="res://Assets/UI/common/xiaoguo.png"
+dest_files=["res://.godot/imported/xiaoguo.png-99eb440a4c3d26f74703843ce52a46a2.ctex"]
 
 [params]
 

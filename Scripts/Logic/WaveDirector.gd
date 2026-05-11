@@ -5,7 +5,7 @@ extends Node
 ## No hardcoded timing — everything comes from level_stage_config.json.
 
 const ENEMY_SCENE_PATH: String = "res://Scenes/Enemy.tscn"
-const SPAWN_OFFSET_ABOVE_SCREEN: float = -300.0
+const SPAWN_OFFSET_ABOVE_SCREEN: float = -430.0
 
 var _stage_id: String = ""
 var _map_id: int = 1
@@ -64,7 +64,7 @@ func load_stage_script(stage_id: String) -> void:
 		return
 
 	_wave_index = 0
-	_stage_elapsed = 0.0
+	_stage_elapsed = -2.0
 	_active = true
 	_all_spawned = false
 	_alive_enemy_count = 0

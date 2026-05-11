@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c1gmpfdautgsa"
-path="res://.godot/imported/monster01_attack_03.png-94b221c859f0c9550eeee584f0529475.ctex"
+uid="uid://d3b8f0ffpx85p"
+path="res://.godot/imported/gongjiUP.png-2e8320804912d8739159617998f84893.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Monsters/boss_01/monster01_attack_03.png"
-dest_files=["res://.godot/imported/monster01_attack_03.png-94b221c859f0c9550eeee584f0529475.ctex"]
+source_file="res://Assets/UI/effects/gongjiUP.png"
+dest_files=["res://.godot/imported/gongjiUP.png-2e8320804912d8739159617998f84893.ctex"]
 
 [params]
 

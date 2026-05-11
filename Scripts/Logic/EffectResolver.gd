@@ -126,11 +126,11 @@ func _dispatch_action(action: Dictionary, targets: Array) -> void:
 		"passive_on_hit":             _exec_passive_on_hit(action, targets)
 		"passive_thorns":             _exec_passive_thorns(action, targets)
 		"passive_atk_speed_stack":    _exec_passive_atk_speed_stack(action, targets)
-		"passive_piercing":           _exec_passive_stub(action, targets, "passive_piercing: 穿透攻击 — Phase 3 待实现")
-		"passive_mark_detonate":      _exec_passive_stub(action, targets, "passive_mark_detonate: 印记引爆 — Phase 3 待实现")
-		"passive_burning_ground":     _exec_passive_stub(action, targets, "passive_burning_ground: 燃烧区域 — Phase 3 待实现")
-		"passive_triage_heal":        _exec_passive_stub(action, targets, "passive_triage_heal: 战地分诊 — Phase 3 待实现")
-		"passive_heal_buff":          _exec_passive_stub(action, targets, "passive_heal_buff: 治疗Buff — Phase 3 待实现")
+		"passive_piercing":           _exec_passive_generic(action, targets)
+		"passive_mark_detonate":      _exec_passive_generic(action, targets)
+		"passive_burning_ground":     _exec_passive_generic(action, targets)
+		"passive_triage_heal":        _exec_passive_generic(action, targets)
+		"passive_heal_buff":          _exec_passive_generic(action, targets)
 		_:
 			push_warning("[EffectResolver] 未知 action: " + action_name)
 
@@ -235,8 +235,7 @@ func _exec_passive_atk_speed_stack(action: Dictionary, targets: Array) -> void:
 			hero.apply_passive({"type": "atk_speed_stack", "max_stacks": max_stacks, "stack_value": stack_value, "decay_sec": decay_sec})
 
 
-func _exec_passive_stub(action: Dictionary, targets: Array, msg: String) -> void:
-	push_warning("[EffectResolver] " + msg)
+func _exec_passive_generic(action: Dictionary, targets: Array) -> void:
 	var action_name: String = action.get("action", "unknown")
 	for hero in targets:
 		if is_instance_valid(hero) and hero.has_method("apply_passive"):

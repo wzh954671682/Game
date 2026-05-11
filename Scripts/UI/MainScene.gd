@@ -121,7 +121,7 @@ func _populate_hero_list() -> void:
 			discard.visible = false
 			discard.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-		card_ui.drag_ended.connect(_on_card_drag_ended.bind(card_ui))
+		card_ui.drag_ended.connect(_on_card_drag_ended)
 		hero_list_content.add_child(card_ui)
 
 

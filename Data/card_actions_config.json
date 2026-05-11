@@ -1,6 +1,16 @@
 {
   "cards": [
     {
+      "card_id": "effect_001",
+      "card_type": "basic_effect",
+      "rarity_id": 5,
+      "vfx_prefab_path": "",
+      "target_restriction": { "type": "none" },
+      "action_list": [
+        { "action": "aoe_damage", "target": "random_enemies", "count": 1, "damage": 100 }
+      ]
+    },
+    {
       "card_id": "adventure_collapse",
       "card_type": "adventure",
       "rarity_id": 5,

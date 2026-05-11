@@ -461,6 +461,9 @@ func _set_all_heroes_dimmed(dimmed: bool) -> void:
 
 func _on_card_drag_started(card_ui: Control) -> void:
 	_active_drag_card = card_ui
+	var icon_node: TextureRect = card_ui.get_node_or_null("Icon") as TextureRect
+	if icon_node and icon_node.texture:
+		_ghost_sprite.texture = icon_node.texture
 	_ghost_sprite.visible = true
 
 
@@ -619,8 +622,8 @@ func _sync_placed_heroes() -> void:
 	_placed_heroes.clear()
 	var stale_keys: Array[Vector2i] = []
 	for pos: Vector2i in BattleManager.grid_occupants:
-		var entity: Node2D = BattleManager.grid_occupants[pos]
-		if not is_instance_valid(entity):
+		var entity = BattleManager.grid_occupants[pos]
+		if entity == null or not is_instance_valid(entity):
 			stale_keys.append(pos)
 			continue
 		if entity.has_method("init_hero"):

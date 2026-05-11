@@ -24,6 +24,7 @@
       "base_atk": 70,
       "base_hp": 600,
       "base_def": 15,
+      "base_crit_rate": 30,
       "block_count": 1,
       "attack_range": 5,
       "shard_base_value": 10,

@@ -21,7 +21,7 @@ extends CanvasLayer
 @export var shard_color: Color = Color(0.4, 0.8, 1.0)
 
 const COIN_ICON_PATH: String = "res://Assets/UI/item/jinbi.png"
-const ICON_SIZE: float = 120.0
+const ICON_SIZE: float = 232.0
 
 # === @onready ==============================================================
 
@@ -100,10 +100,10 @@ func _make_reward_item(icon_path: String, amount: int) -> Control:
 	var icon := TextureRect.new()
 	if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
 		icon.texture = load(icon_path) as Texture2D
+	icon.layout_mode = 1
+	icon.anchors_preset = Control.PRESET_FULL_RECT
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
-	icon.layout_mode = 0
 	icon.mouse_filter = Control.MOUSE_FILTER_PASS
 	ctrl.add_child(icon)
 

@@ -350,5 +350,3 @@ func _fit_label_font() -> void:
 
 	_label_base_font_size = font_size
 	label.add_theme_font_size_override("font_size", font_size)
-
-

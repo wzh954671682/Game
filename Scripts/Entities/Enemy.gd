@@ -27,7 +27,7 @@ signal attack_hit(damage: int)
 @export var hp_bar_width: float = 80.0
 @export var hp_bar_height: float = 14.0
 @export var hp_bar_bg_color: Color = Color("161616")
-@export var hp_bar_fill_color: Color = Color("4e5831")
+@export var hp_bar_fill_color: Color = Color("fdd211")
 @export var sprite_folder: String = ""
 @export var sprite_prefix: String = ""
 @export var splash_percent: float = 0.0
@@ -300,6 +300,18 @@ func set_paused(is_paused: bool) -> void:
 		_apply_state(State.MOVE)
 
 
+# 印记系统 (英雄被动)
+var _marks: Dictionary = {}
+
+func add_mark(hero_key: String) -> int:
+	var count: int = _marks.get(hero_key, 0) + 1
+	_marks[hero_key] = count
+	return count
+
+func clear_marks(hero_key: String) -> void:
+	_marks.erase(hero_key)
+
+
 func freeze(duration: float) -> void:
 	if _state == State.DEATH or _is_frozen:
 		return
@@ -316,12 +328,12 @@ func _on_thaw() -> void:
 	_is_frozen = false
 
 
-func take_damage(amount: int) -> bool:
+func take_damage(amount: int, is_crit: bool = false) -> bool:
 	if _state == State.DEATH:
 		return false
 
 	current_hp -= amount
-	VFXManager.show_damage_text(global_position, amount)
+	VFXManager.show_damage_text(global_position, amount, is_crit)
 
 	# 双层残影血条: 主条瞬扣, 残影条 0.4s lerp 追平
 	var ratio: float = float(current_hp) / float(max_health) if max_health > 0 else 0.0
@@ -453,8 +465,8 @@ func _die() -> void:
 		return
 
 	_state = State.DEATH
-	monitoring = false
-	monitorable = false
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
 
 	BattleManager.unregister_entity(self)
 
