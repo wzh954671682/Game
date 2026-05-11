@@ -207,6 +207,7 @@ func _physics_process(delta: float) -> void:
 		if can_strafe:
 			_update_strafe(delta)
 		if global_position.y > _bottom_boundary():
+			BattleManager.unregister_entity(self)
 			GameEvents.wall_hit.emit(wall_damage)
 			GameEvents.enemy_died.emit(global_position, 0)
 			queue_free()
@@ -454,6 +455,8 @@ func _die() -> void:
 	_state = State.DEATH
 	monitoring = false
 	monitorable = false
+
+	BattleManager.unregister_entity(self)
 
 	if explosion_damage > 0:
 		_trigger_explosion()

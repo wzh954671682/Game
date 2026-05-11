@@ -31,12 +31,26 @@ const PANEL_GUILD := 4
 
 @onready var hero_list_content: HBoxContainer = $PanelContainer/HeroPanel/HeroList/HeroListContent
 
+@onready var _level_label: Label = $PanelContainer/HomePanel/LevelSelect/LevelLabel
+@onready var _btn_level_left: Button = $PanelContainer/HomePanel/LevelSelect/BtnLevelLeft
+@onready var _btn_level_right: Button = $PanelContainer/HomePanel/LevelSelect/BtnLevelRight
+
 var _hero_list_populated := false
+var _current_level_index: int = 1
+var _total_levels: int = 1
 
 
 func _ready() -> void:
 	for i in range(nav_buttons.size()):
 		nav_buttons[i].pressed.connect(_on_nav_button_pressed.bind(i))
+
+	# 初始化关卡选择
+	var stages: Dictionary = DataManager.stage_config.get("stages", {})
+	_total_levels = stages.size()
+	_current_level_index = SaveManager.save_data.get("selected_level", 1)
+	_current_level_index = clampi(_current_level_index, 1, _total_levels)
+	_refresh_level_display()
+
 	switch_panel(PANEL_BATTLE)
 
 
@@ -58,7 +72,27 @@ func _on_nav_button_pressed(index: int) -> void:
 
 
 func _on_start_battle_pressed() -> void:
+	SaveManager.save_data["selected_stage"] = "stage_%03d" % _current_level_index
+	SaveManager.save_data["selected_level"] = _current_level_index
 	get_tree().change_scene_to_file("res://Scenes/BattleTest.tscn")
+
+
+func _on_level_left_pressed() -> void:
+	if _current_level_index > 1:
+		_current_level_index -= 1
+		_refresh_level_display()
+
+
+func _on_level_right_pressed() -> void:
+	if _current_level_index < _total_levels:
+		_current_level_index += 1
+		_refresh_level_display()
+
+
+func _refresh_level_display() -> void:
+	_level_label.text = "第%d关" % _current_level_index
+	_btn_level_left.visible = _current_level_index > 1
+	_btn_level_right.visible = _current_level_index < _total_levels
 
 
 # ============================================================

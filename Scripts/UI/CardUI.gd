@@ -27,6 +27,10 @@ const DRAG_SCALE: Vector2 = Vector2(1.1, 1.1)
 
 const CARD_BG_PATH: String = "res://Assets/UI/card/"
 const CARD_ICON_PATH: String = "res://Assets/Heroes/heroshow/"
+const LABEL_DEFAULT_FONT_SIZE: int = 42
+const LABEL_MIN_FONT_SIZE: int = 24
+
+var _label_base_font_size: int = LABEL_DEFAULT_FONT_SIZE
 
 
 func _ready() -> void:
@@ -64,6 +68,7 @@ func setup_card(p_card_id: String) -> void:
 	hero_name = _resolve_card_name(card_id, card_type, card_info)
 	if has_node("Label"):
 		$Label.text = hero_name
+		_fit_label_font()
 
 
 func _find_card_info(p_card_id: String) -> Dictionary:
@@ -318,3 +323,32 @@ func _on_discard_pressed() -> void:
 func _kill_hover_tween() -> void:
 	if _hover_tween and _hover_tween.is_valid():
 		_hover_tween.kill()
+
+
+func _fit_label_font() -> void:
+	var label: Label = $Label
+	var text: String = label.text
+	if text.is_empty():
+		return
+
+	# 固定可用区域: 基于 card custom_minimum_size + label offset 计算
+	var card_h: float = custom_minimum_size.y
+	var avail_w: float = label.offset_right - label.offset_left
+	var avail_h: float = (card_h + label.offset_bottom) - (card_h * 0.5 + label.offset_top)
+
+	var font: Font = label.get_theme_font("font")
+	var font_size: int = LABEL_DEFAULT_FONT_SIZE
+
+	# 字号线性递减，找最大能放进去的
+	while font_size > LABEL_MIN_FONT_SIZE:
+		var tw: float = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var lines: int = maxi(1, ceili(tw / avail_w))
+		var lh: float = font.get_height(font_size)
+		if lines * lh <= avail_h:
+			break
+		font_size -= 1
+
+	_label_base_font_size = font_size
+	label.add_theme_font_size_override("font_size", font_size)
+
+

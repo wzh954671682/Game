@@ -92,6 +92,11 @@ var _hand_container: Control = null
 # ============================================================
 
 func _ready() -> void:
+	# 从主菜单读取玩家选择的关卡
+	var saved_stage: String = SaveManager.save_data.get("selected_stage", "")
+	if not saved_stage.is_empty() and DataManager.stage_config.get("stages", {}).has(saved_stage):
+		current_stage_id = saved_stage
+
 	_wall_max_hp = DataManager.wall_config.get("base_hp", 50)
 	_wall_current_hp = _wall_max_hp
 	_wall_displayed_hp = float(_wall_max_hp)
@@ -612,10 +617,16 @@ func _deploy_hero_from_card(grid_pos: Vector2i, card_ui: Control) -> void:
 
 func _sync_placed_heroes() -> void:
 	_placed_heroes.clear()
+	var stale_keys: Array[Vector2i] = []
 	for pos: Vector2i in BattleManager.grid_occupants:
 		var entity: Node2D = BattleManager.grid_occupants[pos]
+		if not is_instance_valid(entity):
+			stale_keys.append(pos)
+			continue
 		if entity.has_method("init_hero"):
 			_placed_heroes[pos] = entity
+	for key in stale_keys:
+		BattleManager.grid_occupants.erase(key)
 
 
 # ============================================================

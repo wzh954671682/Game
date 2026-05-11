@@ -63,16 +63,13 @@ text = "胜利"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RewardContainer" type="VBoxContainer" parent="SafeAreaContainer/Wrapper/Background" unique_id=138873786]
+[node name="RewardContainer" type="Control" parent="SafeAreaContainer/Wrapper/Background" unique_id=138873786]
 layout_mode = 0
 offset_left = 101.0
 offset_top = 537.0
 offset_right = 974.0
 offset_bottom = 1032.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 200
-alignment = 1
+mouse_filter = 2
 
 [node name="Btn_Action" type="Button" parent="SafeAreaContainer/Wrapper/Background" unique_id=1758956206]
 custom_minimum_size = Vector2(240, 80)

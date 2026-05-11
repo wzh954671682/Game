@@ -53,7 +53,7 @@
       "sig": ["wall_hit", "enemy_died", "card_deployed", "deadlock_rescue_triggered", "wall_hp_changed", "game_over", "stage_victory"]
     },
     "Scripts/Global/DataManager.gd": { "ext": "Node", "m": ["load_json"], "exp": ["error_messages", "monster_templates", "stage_config", "wall_config", "rarity_config", "card_display_config", "heroes_progression", "card_actions_config"] },
-    "Scripts/Global/SaveManager.gd": { "ext": "Node", "m": ["save_game", "load_game"], "exp": ["save_data(gold/shards/max_level/unlocked_cards)"] },
+    "Scripts/Global/SaveManager.gd": { "ext": "Node", "m": ["save_game", "load_game"], "exp": ["save_data(gold/shards/max_level/selected_level/selected_stage/unlocked_cards)"] },
     "Scripts/Global/VFXManager.gd": { "ext": "Node", "m": ["hit_stop", "show_damage_text", "play_skill_vfx"], "note": "PROCESS_MODE_ALWAYS; Phase15.5: is_crit参数(黄字/1.5x字号/弹性缩放), 防堆叠(POPUP_MAX=15, >5屏偏移)", "z": { "damage_text": 20, "damage_canvas_layer": 100 } },
     "Scripts/Logic/GridManager.gd": {
       "ext": "Node",
@@ -86,15 +86,15 @@
     "Scripts/UI/PausePanel.gd": { "ext": "CanvasLayer", "m": ["show_pause", "_on_continue_pressed", "_on_home_pressed"], "note": "暂停弹窗: 遮罩+继续(取消暂停)+首页(change_scene→MainScene)" },
     "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
     "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup_card", "setup"], "z": { "idle": 0, "dragging": 10, "selected": 10 }, "note": "数据驱动: setup_card()→rarity_config+card_display_config→动态加载CardBG/Icon/Label" },
-    "Scripts/UI/MainScene.gd": { "ext": "CanvasLayer", "m": ["switch_panel", "_on_nav_button_pressed", "_on_start_battle_pressed", "_populate_hero_panel", "_populate_hero_list", "_on_card_drag_ended", "_assign_to_squad", "_load_squad_from_save", "_show_hero_in_slot", "_show_empty_slot"], "exp": ["panels[5]", "nav_buttons[5]", "squad_slots[4]", "hero_list_content(HBoxContainer)", "_hero_list_populated"], "c": { "PANEL_SHOP": 0, "PANEL_HERO": 1, "PANEL_BATTLE": 2, "PANEL_CAMP": 3, "PANEL_GUILD": 4 }, "note": "NavBar: 商店/英雄/战斗/阵营/公会, 选中态StyleBoxFlat(#9de38c)+font_disabled(#161616)" },
+    "Scripts/UI/MainScene.gd": { "ext": "CanvasLayer", "m": ["switch_panel", "_on_nav_button_pressed", "_on_start_battle_pressed", "_populate_hero_panel", "_populate_hero_list", "_on_card_drag_ended", "_assign_to_squad", "_load_squad_from_save", "_show_hero_in_slot", "_show_empty_slot", "_on_level_left_pressed", "_on_level_right_pressed", "_refresh_level_display"], "exp": ["panels[5]", "nav_buttons[5]", "squad_slots[4]", "hero_list_content(HBoxContainer)", "_hero_list_populated", "_level_label", "_btn_level_left", "_btn_level_right", "_current_level_index", "_total_levels"], "c": { "PANEL_SHOP": 0, "PANEL_HERO": 1, "PANEL_BATTLE": 2, "PANEL_CAMP": 3, "PANEL_GUILD": 4 }, "note": "NavBar+关卡选择(LevelSelect: BtnLevelLeft/LevelLabel/BtnLevelRight), 选中态StyleBoxFlat(#9de38c)+font_disabled(#161616)" },
     "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
     "Scripts/UI/WrapperMonitor.gd": { "ext": "Control", "note": "Debug: 监控Wrapper节点size/position变化并打印日志" },
     "Scripts/UI/SettlementPanel.gd": {
       "ext": "CanvasLayer",
-      "m": ["setup", "_play_entrance_animation", "_create_reward_icons", "_save_rewards", "_on_btn_action_pressed"],
-      "exp": ["panel_width", "panel_height", "status_font_size", "reward_font_size", "button_font_size", "icon_size", "icon_spacing", "icon_bounce_delay", "entrance_duration", "icon_bounce_duration", "initial_delay", "victory_color", "defeat_color", "overlay_color", "gold_color", "shard_color"],
-      "c": { "coin_icon": "Assets/UI/item/jinbi.png", "shard_pattern": "res://Assets/UI/item/hrro_suipian_{shard_id}.png" },
-      "note": "Phase16: 结算弹窗, @export变量驱动布局, modulate+slide入场(不依赖scale), Timer触发freeze, ClickBlocker防穿透"
+      "m": ["setup", "_play_entrance_animation", "_create_reward_icons", "_make_reward_item", "_save_rewards", "_on_btn_action_pressed"],
+      "exp": ["entrance_duration", "item_bounce_duration", "item_delay", "freeze_delay", "victory_color", "defeat_color", "overlay_color", "gold_color", "shard_color"],
+      "c": { "coin_icon": "Assets/UI/item/jinbi.png", "shard_pattern": "res://Assets/UI/item/hrro_suipian_{shard_id}.png", "ICON_SIZE": 120, "ITEM_SPACING": 60 },
+      "note": "Phase16: 奖励道具水平排列(Control+position.x), 数字白字黑边(42px/outline10)叠加图标右下角(距边框30px), elastic入场动画"
     },
     "Scripts/Test/BattleTest.gd": {
       "ext": "Node2D",
@@ -102,7 +102,7 @@
       "c": { "wall_hp": 50 },
       "exp": ["current_stage_id"],
       "m": ["_setup_grid_map", "_setup_wave_director", "_load_stage_data", "_launch_wave_director", "_on_stage_victory", "_on_game_over", "_load_battle_ui", "_handle_effect_card", "_build_initial_card_pool", "_collect_effect_card_ids", "_deploy_squad_heroes", "_on_player_level_up", "_build_level_up_cards", "_update_hero_dim", "_dim_all_heroes_except", "_set_all_heroes_dimmed"],
-      "note": "Phase18: _build_initial_card_pool从SaveManager读阵容→3x每英雄+效果卡; _deploy_squad_heroes预部署后排(i,4)"
+      "note": "Phase18: _build_initial_card_pool从SaveManager读阵容→3x每英雄+效果卡; _deploy_squad_heroes预部署后排(i,4); _ready读SaveManager.selected_stage覆盖current_stage_id"
     }
   },
   "tscn": {
@@ -112,9 +112,9 @@
     "Scenes/CardUI.tscn": { "s": "Scripts/UI/CardUI.gd", "root": "Control", "ch": ["CardBG(TextureRect)", "Icon", "Label"], "note": "Panel→CardBG: 动态加载rarity底图" },
     "Scenes/UI/BattleUI.tscn": { "s": "Scripts/UI/BattleUI.gd", "root": "CanvasLayer", "layer": 1, "ch": ["TopWrapper(HBoxContainer)", "Wall", "GridAnchor", "CardTrayAnchor(NinePatchRect)", "HandContainer", "RescueBanner", "DeckCountLabel"], "tiles": "Tile_1..Tile_25 under GridAnchor", "top_hud": "TopWrapper→RankNode(MedalBG+BattleLevel)+ExpBarNode(ExpProgressBar+ExpLabel)+PauseButton" },
     "Scenes/UI/PausePanel.tscn": { "s": "Scripts/UI/PausePanel.gd", "root": "CanvasLayer", "layer": 100, "ch": ["Background(ColorRect)", "ContentVBox(VBoxContainer)", "TitleLabel", "ButtonHBox(HBoxContainer)", "BtnHome", "BtnContinue"], "note": "半透明遮罩+居中内容, BtnContinue=取消暂停" },
-    "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "Container Dominance: 容器子节点全用layout_mode=2+size_flags, 无anchor/offset残留" },
-    "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=2)", "RewardContainer(VBoxContainer,lm=2,sf=3)", "Btn_Action(Button,lm=2)", "text(Label,lm=2)"], "note": "结构100%对齐VictoryPanel, 仅text='失败'+defeat_color" },
-    "Scenes/MainScene.tscn": { "s": "Scripts/UI/MainScene.gd", "root": "CanvasLayer", "ch": ["PanelContainer(full_rect)→SceneBg(ColorRect,dark)", "HomePanel→TitleLabel+SubtitleLabel+BtnStartBattle", "HeroPanel→SquadLabel+SquadContainer→Slot0~3(SlotBg+EmptyLabel+HeroIcon+QualityFrame)", "HeroPanel→HeroListLabel+HeroList(ScrollContainer,h=320,horiz)→HeroListContent(HBoxContainer,separation=20)", "PreloadPanels→ShopPanel+CampPanel+GuildPanel", "NavLayer(bottom,120px)→BottomNavBar→NavBarBg+BtnNav0(商店)+BtnNav1(英雄)+BtnNav2(战斗)+BtnNav3(阵营)+BtnNav4(公会)"], "note": "MainMenu: SceneBg暗色背景+HomePanel标题+按钮; HeroPanel: SlotBg暗色占位+动态CardUI列表" }
+    "Scenes/UI/VictoryPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=0)", "RewardContainer(Control,lm=0)", "Btn_Action(Button,lm=0)", "text(Label,lm=0)"], "note": "RewardContainer改为Control(lm=0), 代码水平排列道具+数字叠加" },
+    "Scenes/UI/DefeatPanel.tscn": { "s": "Scripts/UI/SettlementPanel.gd", "root": "CanvasLayer", "layer": 10, "ch": ["SafeAreaContainer(MarginContainer,lm=3)", "Wrapper(Control,lm=2,sf=3)", "Background(TextureRect,lm=2,sf=3)", "Label_Status(Label,lm=0)", "RewardContainer(Control,lm=0)", "Btn_Action(Button,lm=0)", "text(Label,lm=0)"], "note": "结构100%对齐VictoryPanel, 仅text='失败'+defeat_color" },
+    "Scenes/MainScene.tscn": { "s": "Scripts/UI/MainScene.gd", "root": "CanvasLayer", "ch": ["PanelContainer(full_rect)→SceneBg(ColorRect,dark)", "HomePanel→TitleLabel+SubtitleLabel+LevelSelect(BtnLevelLeft+LevelLabel+BtnLevelRight)+BtnStartBattle", "HeroPanel→SquadLabel+SquadContainer→Slot0~3(SlotBg+EmptyLabel+HeroIcon+QualityFrame)", "HeroPanel→HeroListLabel+HeroList(ScrollContainer,h=320,horiz)→HeroListContent(HBoxContainer,separation=20)", "PreloadPanels→ShopPanel+CampPanel+GuildPanel", "NavLayer(bottom,120px)→BottomNavBar→NavBarBg+BtnNav0(商店)+BtnNav1(英雄)+BtnNav2(战斗)+BtnNav3(阵营)+BtnNav4(公会)"], "note": "MainMenu: SceneBg暗色背景+HomePanel标题+关卡选择器+按钮; HeroPanel: SlotBg暗色占位+动态CardUI列表" }
   },
   "res": {
     "hero": {

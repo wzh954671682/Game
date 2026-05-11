@@ -27,7 +27,7 @@ const ICON_SIZE: float = 120.0
 
 @onready var _background: TextureRect = $SafeAreaContainer/Wrapper/Background
 @onready var _label_status: Label = $SafeAreaContainer/Wrapper/Background/Label_Status
-@onready var _reward_container: VBoxContainer = $SafeAreaContainer/Wrapper/Background/RewardContainer
+@onready var _reward_container: Control = $SafeAreaContainer/Wrapper/Background/RewardContainer
 @onready var _btn_action: Button = $SafeAreaContainer/Wrapper/Background/Btn_Action
 
 # === state =================================================================
@@ -71,60 +71,66 @@ func setup(is_victory: bool, coin: int, shard: int, shard_id: String = "") -> vo
 
 
 # ============================================================
-# 奖励行 (item_row = HBoxContainer[icon + label])
+# 奖励道具 — 水平排列, 数字叠加在图标右下角
 # ============================================================
+
+const ITEM_SPACING: float = 60.0
 
 func _create_reward_icons() -> void:
 	for child: Node in _reward_container.get_children():
 		child.queue_free()
 
-	# --- Gold row ---
-	var gold_row := HBoxContainer.new()
-	gold_row.name = "GoldRow"
-	gold_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	gold_row.mouse_filter = Control.MOUSE_FILTER_PASS
-
-	var gold_icon := _make_icon(COIN_ICON_PATH)
-	gold_row.add_child(gold_icon)
-	gold_row.add_child(_make_label("+%d" % _coin_amount, gold_color))
-	_reward_container.add_child(gold_row)
-
-	# --- Shard row (victory only) ---
+	var items: Array[Dictionary] = []
+	items.append({"icon": COIN_ICON_PATH, "amount": _coin_amount})
 	if _is_victory and _shard_amount > 0:
-		var shard_row := HBoxContainer.new()
-		shard_row.name = "ShardRow"
-		shard_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		shard_row.mouse_filter = Control.MOUSE_FILTER_PASS
+		items.append({"icon": _shard_icon_path, "amount": _shard_amount})
 
-		var shard_icon := _make_icon(_shard_icon_path)
-		shard_row.add_child(shard_icon)
-		shard_row.add_child(_make_label("+%d" % _shard_amount, shard_color))
-		_reward_container.add_child(shard_row)
+	for i in items.size():
+		var item_ctrl := _make_reward_item(items[i]["icon"], items[i]["amount"])
+		item_ctrl.position = Vector2(i * (ICON_SIZE + ITEM_SPACING), 0)
+		_reward_container.add_child(item_ctrl)
 
 
-func _make_icon(path: String) -> TextureRect:
+func _make_reward_item(icon_path: String, amount: int) -> Control:
+	var ctrl := Control.new()
+	ctrl.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+	ctrl.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	# 图标
 	var icon := TextureRect.new()
-	if not path.is_empty() and ResourceLoader.exists(path):
-		icon.texture = load(path) as Texture2D
+	if not icon_path.is_empty() and ResourceLoader.exists(icon_path):
+		icon.texture = load(icon_path) as Texture2D
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
-	icon.pivot_offset = Vector2(ICON_SIZE / 2.0, ICON_SIZE / 2.0)
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.layout_mode = 0
 	icon.mouse_filter = Control.MOUSE_FILTER_PASS
-	return icon
+	ctrl.add_child(icon)
 
-
-func _make_label(text: String, color: Color) -> Label:
+	# 数字标签 — 图标右下角, 距边框30px
 	var lbl := Label.new()
-	lbl.text = text
+	lbl.text = str(amount)
 	lbl.add_theme_font_size_override(&"font_size", 42)
-	lbl.add_theme_color_override(&"font_color", color)
-	lbl.add_theme_constant_override(&"outline_size", 4)
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_color_override(&"font_color", Color.WHITE)
+	lbl.add_theme_color_override(&"font_outline_color", Color.BLACK)
+	lbl.add_theme_constant_override(&"outline_size", 10)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	lbl.mouse_filter = Control.MOUSE_FILTER_PASS
-	return lbl
+	lbl.layout_mode = 1
+	lbl.anchor_left = 1.0
+	lbl.anchor_top = 1.0
+	lbl.anchor_right = 1.0
+	lbl.anchor_bottom = 1.0
+	lbl.offset_left = -120.0
+	lbl.offset_top = -60.0
+	lbl.offset_right = -30.0
+	lbl.offset_bottom = -30.0
+	lbl.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	lbl.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	ctrl.add_child(lbl)
+
+	return ctrl
 
 
 # ============================================================
@@ -141,10 +147,11 @@ func _play_entrance_animation() -> void:
 	tween.set_ease(Tween.EASE_OUT)
 	tween.tween_property(_background, "scale", Vector2.ONE, entrance_duration)
 
-	# Item rows: sequential scale 0 → 1
+	# Items: sequential scale 0 → 1
 	var delay: float = item_delay
 	for child: Node in _reward_container.get_children():
-		if child is HBoxContainer:
+		if child is Control:
+			child.pivot_offset = child.custom_minimum_size * 0.5
 			child.scale = Vector2.ZERO
 			var row_tween := create_tween()
 			row_tween.set_trans(Tween.TRANS_ELASTIC)

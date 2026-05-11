@@ -35,7 +35,10 @@
       "Bash(python _resize_temp.py)",
       "Bash(python e:/GameDemo/_resize_temp.py)",
       "Bash(\"c:/users/34445/appdata/local/programs/python/python313/python.exe\" \"e:/GameDemo/_resize_temp.py\")",
-      "Bash(grep -v '.import$')"
+      "Bash(grep -v '.import$')",
+      "Bash(magick --version)",
+      "Bash(python \"F:/tmp/flip_images.py\")",
+      "Bash(xxd)"
     ],
     "additionalDirectories": [
       "f:\\GAME-demo\\game-demo-w\\Scripts",

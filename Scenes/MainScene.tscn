@@ -88,6 +88,52 @@ text = "之一"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="LevelSelect" type="Control" parent="PanelContainer/HomePanel" unique_id=2983746512]
+anchors_preset = 0
+offset_left = 240.0
+offset_top = 760.0
+offset_right = 840.0
+offset_bottom = 920.0
+mouse_filter = 2
+
+[node name="BtnLevelLeft" type="Button" parent="PanelContainer/HomePanel/LevelSelect" unique_id=3109274851]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 72
+text = "<"
+flat = true
+
+[node name="LevelLabel" type="Label" parent="PanelContainer/HomePanel/LevelSelect" unique_id=3451627890]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 0.0
+offset_right = 460.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 72
+text = "第1关"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BtnLevelRight" type="Button" parent="PanelContainer/HomePanel/LevelSelect" unique_id=3728401953]
+layout_mode = 0
+offset_left = 500.0
+offset_top = 20.0
+offset_right = 600.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 72
+text = ">"
+flat = true
+
 [node name="BtnStartBattle" type="Button" parent="PanelContainer/HomePanel" unique_id=1822405195]
 layout_mode = 0
 offset_left = 271.0
@@ -545,3 +591,5 @@ theme_override_styles/disabled = SubResource("style_nav_selected")
 text = "公会"
 
 [connection signal="pressed" from="PanelContainer/HomePanel/BtnStartBattle" to="." method="_on_start_battle_pressed"]
+[connection signal="pressed" from="PanelContainer/HomePanel/LevelSelect/BtnLevelLeft" to="." method="_on_level_left_pressed"]
+[connection signal="pressed" from="PanelContainer/HomePanel/LevelSelect/BtnLevelRight" to="." method="_on_level_right_pressed"]

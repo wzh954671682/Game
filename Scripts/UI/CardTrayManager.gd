@@ -13,15 +13,15 @@ extends Control
 
 signal card_created(card_ui: Control)
 
-const CARD_W: float = 150.0
-const CARD_H: float = 200.0
+const CARD_W: float = 195.0
+const CARD_H: float = 260.0
 const HALF_W: float = CARD_W / 2.0
 const HALF_H: float = CARD_H / 2.0
-const SPACING: float = 150.0
+const SPACING: float = 195.0
 const SLIDE_DUR: float = 0.3
 const FLY_IN_DUR: float = 0.25
 const PUSH_DUR: float = 0.18
-const PUSH_OFFSET: float = 40.0
+const PUSH_OFFSET: float = 52.0
 const MAX_VISIBLE: int = 5
 
 var _card_scene: PackedScene = null
