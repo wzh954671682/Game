@@ -20,33 +20,39 @@
     {"n": "DeckManager", "f": "Scripts/Managers/DeckManager.gd", "r": "deck"},
     {"n": "VFXManager", "f": "Scripts/Global/VFXManager.gd", "r": "vfx"},
     {"n": "SaveManager", "f": "Scripts/Global/SaveManager.gd", "r": "save"},
-    {"n": "EffectResolver", "f": "Scripts/Logic/EffectResolver.gd", "r": "effect"}
+    {"n": "EffectResolver", "f": "Scripts/Logic/EffectResolver.gd", "r": "effect"},
+    {"n": "HeroProjectile", "f": "Scripts/Entities/HeroProjectile.gd", "r": "proj"}
   ],
   "gd": {
     "Scripts/Logic/EffectResolver.gd": {
       "ext": "Node",
-      "m": ["get_card_data", "card_type_from_id", "resolve_targets", "execute_card", "_exec_passive_atk_speed_stack", "_exec_passive_stub"],
-      "note": "卡牌效果解析器: 目标校验+action_list分发, 16种action类型(6种Phase3占位)"
+      "m": ["get_card_data", "card_type_from_id", "resolve_targets", "execute_card", "_exec_passive_atk_speed_stack", "_exec_passive_generic"],
+      "note": "卡牌效果解析器: 目标校验+action_list分发, 17种action类型(全部实装)"
     },
-    "Scripts/Entities/Hero.gd": {
+    "Scripts/Entities/HeroProjectile.gd": {
+      "ext": "Area2D",
+      "exp": [],
+      "m": ["setup", "_on_hit"],
+      "note": "弹道: 穿透衰减(_pierce_decay)+目标去重(_hit_targets)+暴击传递; 支持序列帧或单图"
+    }, {
       "ext": "Node2D",
       "fsm": ["STANDBY", "ATTACK", "DEATH"],
-      "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval", "attack_range", "_atk_speed_stacks", "hp_bar_show", "hp_bar_y_offset", "hp_bar_width", "hp_bar_height", "hp_bar_bg_color", "hp_bar_fill_color"],
+      "exp": ["hero_id", "current_star", "max_block_count", "attack_power", "max_health", "frame_interval", "attack_range", "heal_percent", "heal_interval", "heal_aura_scale", "_atk_speed_stacks", "hp_bar_show", "hp_bar_y_offset", "hp_bar_width", "hp_bar_height", "hp_bar_bg_color", "hp_bar_fill_color"],
       "sig": [],
-      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive", "_trigger_attack_passives", "_on_atk_speed_decay", "_on_enemy_attack_hit", "heal", "set_dimmed", "_setup_hp_bar", "_update_hp_bar"],
+      "m": ["try_intercept", "take_damage", "can_star_up", "star_up", "init_hero", "set_paused", "get_final_stats", "apply_permanent_buff", "apply_timed_buff", "apply_passive", "_trigger_attack_passives", "_roll_crit", "_spawn_burning_ground", "_trigger_mark_detonate", "_trigger_atk_speed_stack", "_on_atk_speed_decay", "_on_enemy_attack_hit", "heal", "set_dimmed", "_setup_hp_bar", "_update_hp_bar", "_setup_hitbox", "_setup_heal_aura", "_heal_nearby_allies", "_pulse_heal_aura"],
       "stars": { "max": 5, "mult": [1.0, 1.5, 2.2, 3.0, 4.5], "scale": 0.1, "heal": 0.2 },
       "sprites": { "shielder_01": "001", "hero_002": "001", "hero_003": "001", "hero_004": "001" },
       "z": { "default": 0 },
-      "note": "HPBar: 角色下方80px @export可调; atk_speed_stack: 攻速叠层+衰减"
+      "note": "HPBar: 角色下方80px @export可调; 属性4维(atk/hp/atk_speed/crit_rate); 暴击2x+穿透衰减+印记引爆+燃烧区域+治疗光环+Hitbox(80x120)"
     },
     "Scripts/Entities/Enemy.gd": {
       "ext": "Area2D",
       "fsm": ["MOVE", "ATTACK", "DEATH"],
       "exp": ["move_speed", "max_health", "wall_damage", "attack_damage", "monster_id", "frame_interval", "is_elite", "is_boss", "can_strafe", "bypass_intercept", "explosion_damage", "explosion_radius", "hp_bar_show", "hp_bar_y_offset", "hp_bar_width", "hp_bar_height", "hp_bar_bg_color", "hp_bar_fill_color"],
       "sig": ["attack_hit"],
-      "m": ["take_damage", "set_paused", "freeze", "_setup_hp_bars", "_update_strafe", "_trigger_explosion"],
+      "m": ["take_damage", "set_paused", "freeze", "add_mark", "clear_marks", "_setup_hp_bars", "_update_strafe", "_trigger_explosion"],
       "z": { "default": 0 },
-      "note": "HPBar: 头顶60px @export可调, 全敌人显示(不再仅精英/Boss); 色值bg#161616 fill#4e5831"
+      "note": "HPBar: 头顶60px, 全敌人显示; 色值bg#161616 fill#fdd211; 印记系统(add_mark/clear_marks); take_damage支持is_crit暴击"
     },
     "Scripts/Global/GameEvents.gd": {
       "ext": "Node",
@@ -74,7 +80,7 @@
       "exp": [],
       "sig": [],
       "c": {},
-      "note": "spawn传递全部模板属性: strafe/bypass/explosion"
+      "note": "spawn传递全部模板属性: strafe/bypass/explosion; SPAWN_OFFSET=-430; stage_elapsed起始=-2s"
     },
     "Scripts/Managers/DeckManager.gd": {
       "ext": "Node",
@@ -84,8 +90,8 @@
     },
     "Scripts/UI/BattleUI.gd": { "ext": "CanvasLayer", "m": ["update_exp", "update_battle_level", "_on_pause_pressed"], "exp": ["_medal_bg", "_battle_level_label", "_exp_progress_bar", "_exp_label", "_pause_button", "_pause_panel"], "note": "TopWrapper子节点引用+暂停面板加载" },
     "Scripts/UI/PausePanel.gd": { "ext": "CanvasLayer", "m": ["show_pause", "_on_continue_pressed", "_on_home_pressed"], "note": "暂停弹窗: 遮罩+继续(取消暂停)+首页(change_scene→MainScene)" },
-    "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"] },
-    "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup_card", "setup"], "z": { "idle": 0, "dragging": 10, "selected": 10 }, "note": "数据驱动: setup_card()→rarity_config+card_display_config→动态加载CardBG/Icon/Label" },
+    "Scripts/UI/CardTrayManager.gd": { "ext": "Control", "cn": "CardTrayManager", "sig": ["card_created"], "m": ["setup"], "c": { "CARD_W": 195, "CARD_H": 260, "SPACING": 195, "SLIDE_DUR": 0.3, "FLY_IN_DUR": 0.25, "PUSH_DUR": 0.18, "PUSH_OFFSET": 52, "MAX_VISIBLE": 5 } },
+    "Scripts/UI/CardUI.gd": { "ext": "Control", "sig": ["drag_started", "drag_ended", "drag_cancelled"], "m": ["setup_card", "setup", "_fit_label_font"], "z": { "idle": 0, "dragging": 10, "selected": 10 }, "c": { "LABEL_DEFAULT_FONT_SIZE": 42, "LABEL_MIN_FONT_SIZE": 24 }, "note": "数据驱动: setup_card()→rarity_config+card_display_config→动态加载CardBG/Icon/Label; _fit_label_font自适应字号42→24" },
     "Scripts/UI/MainScene.gd": { "ext": "CanvasLayer", "m": ["switch_panel", "_on_nav_button_pressed", "_on_start_battle_pressed", "_populate_hero_panel", "_populate_hero_list", "_on_card_drag_ended", "_assign_to_squad", "_load_squad_from_save", "_show_hero_in_slot", "_show_empty_slot", "_on_level_left_pressed", "_on_level_right_pressed", "_refresh_level_display"], "exp": ["panels[5]", "nav_buttons[5]", "squad_slots[4]", "hero_list_content(HBoxContainer)", "_hero_list_populated", "_level_label", "_btn_level_left", "_btn_level_right", "_current_level_index", "_total_levels"], "c": { "PANEL_SHOP": 0, "PANEL_HERO": 1, "PANEL_BATTLE": 2, "PANEL_CAMP": 3, "PANEL_GUILD": 4 }, "note": "NavBar+关卡选择(LevelSelect: BtnLevelLeft/LevelLabel/BtnLevelRight), 选中态StyleBoxFlat(#9de38c)+font_disabled(#161616)" },
     "Scripts/UI/SafeAreaContainer.gd": { "ext": "MarginContainer" },
     "Scripts/UI/WrapperMonitor.gd": { "ext": "Control", "note": "Debug: 监控Wrapper节点size/position变化并打印日志" },
@@ -93,7 +99,7 @@
       "ext": "CanvasLayer",
       "m": ["setup", "_play_entrance_animation", "_create_reward_icons", "_make_reward_item", "_save_rewards", "_on_btn_action_pressed"],
       "exp": ["entrance_duration", "item_bounce_duration", "item_delay", "freeze_delay", "victory_color", "defeat_color", "overlay_color", "gold_color", "shard_color"],
-      "c": { "coin_icon": "Assets/UI/item/jinbi.png", "shard_pattern": "res://Assets/UI/item/hrro_suipian_{shard_id}.png", "ICON_SIZE": 120, "ITEM_SPACING": 60 },
+      "c": { "coin_icon": "Assets/UI/item/jinbi.png", "shard_pattern": "res://Assets/UI/item/hrro_suipian_{shard_id}.png", "ICON_SIZE": 232, "ITEM_SPACING": 60 },
       "note": "Phase16: 奖励道具水平排列(Control+position.x), 数字白字黑边(42px/outline10)叠加图标右下角(距边框30px), elastic入场动画"
     },
     "Scripts/Test/BattleTest.gd": {
@@ -147,6 +153,10 @@
     "card_display_config": "Data/card_display_config.json",
     "playerBattleEXP": "Data/playerBattleEXP.json",
     "card_actions_config": "Data/card_actions_config.json"
+  },
+  "build": {
+    "export_presets": "export_presets.cfg (Android APK)",
+    "note": "2026-05-11新增"
   },
   "flow": {
     "intercept": "Hero.try_intercept→RayCast2D→Enemy.set_paused(true)→both_ATTACK→Hero.frame2_deal_dmg; Enemy.attack_hit_signal→Hero.take_damage",
